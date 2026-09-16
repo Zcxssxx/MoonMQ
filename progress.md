@@ -36,7 +36,7 @@
 - Native TCP transport remains the next major implementation slice.
 - Protocol PRs #7 and #8 and Broker PR #9 are merged into the default branch with successful local verification.
 - The portable Core Profile + embedded Broker MVP is ready for hackathon submission; native TCP remains explicitly deferred.
-- Broker review follow-up #10 is implemented locally in PR #11 and awaiting merge.
+- Broker review follow-up #10 is implemented and merged in PR #11.
 
 ## Test Results
 

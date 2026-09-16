@@ -45,6 +45,12 @@ This log is intentionally chronological. Each implementation milestone links its
 - Verification: Broker package 13/13 and full project 36/36 passed on wasm, wasm-gc, js, and native; both demos passed.
 - Commits: `3821c5f`, `282844b`, `5a49672`.
 
+## 2026-09-16 — final merged-main verification ([PR #11](https://github.com/Zcxssxx/MoonMQ/pull/11))
+
+- PR #11 is merged into `main`; Issues #1–#4 and #10 are closed, while #5 and #6 remain explicit follow-up work.
+- The merged tree is the portable MVP boundary: AMQP Core Profile codec plus deterministic embedded Broker, with no external service required for the demos.
+- Final verification is recorded after the merge: 36/36 tests pass on wasm, wasm-gc, js, and native; both local demos pass; format and working-tree checks are clean.
+
 ## Record format for future entries
 
 Each milestone entry will include its date, Issue/PR links, user-visible behavior, verification commands, compatibility limitations, and commit summary.
