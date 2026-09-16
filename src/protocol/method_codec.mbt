@@ -75,7 +75,10 @@ fn read_u64_at(input : Bytes, offset : Int) -> Result[(UInt64, Int), AmqpError] 
 }
 
 ///|
-fn read_short_string_at(input : Bytes, offset : Int) -> Result[(String, Int), AmqpError] {
+fn read_short_string_at(
+  input : Bytes,
+  offset : Int,
+) -> Result[(String, Int), AmqpError] {
   if offset >= input.length() {
     return Err(TruncatedInput)
   }
@@ -120,16 +123,18 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
       return Err(TruncatedInput)
     }
     let flags = input[offset].to_int()
-    if offset + 1 != input.length() || ((flags & 0xFC) != 0) {
+    if offset + 1 != input.length() || (flags & 0xFC) != 0 {
       return Err(UnsupportedMethod)
     }
-    Ok(BasicPublish(
-      ticket=ticket,
-      exchange=exchange,
-      routing_key=routing_key,
-      mandatory=(flags & 0x01) != 0,
-      immediate=(flags & 0x02) != 0,
-    ))
+    Ok(
+      BasicPublish(
+        ticket~,
+        exchange~,
+        routing_key~,
+        mandatory=(flags & 0x01) != 0,
+        immediate=(flags & 0x02) != 0,
+      ),
+    )
   } else if class_id == UInt16(60) && method_id == UInt16(80) {
     let (delivery_tag, offset) = match read_u64_at(input, 4) {
       Ok(value) => value
@@ -142,7 +147,7 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
     if (flags & 0xFE) != 0 {
       return Err(UnsupportedMethod)
     }
-    Ok(BasicAck(delivery_tag=delivery_tag, multiple=(flags & 0x01) != 0))
+    Ok(BasicAck(delivery_tag~, multiple=(flags & 0x01) != 0))
   } else if class_id == UInt16(60) && method_id == UInt16(90) {
     let (delivery_tag, offset) = match read_u64_at(input, 4) {
       Ok(value) => value
@@ -155,7 +160,7 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
     if (flags & 0xFE) != 0 {
       return Err(UnsupportedMethod)
     }
-    Ok(BasicReject(delivery_tag=delivery_tag, requeue=(flags & 0x01) != 0))
+    Ok(BasicReject(delivery_tag~, requeue=(flags & 0x01) != 0))
   } else {
     Err(UnsupportedMethod)
   }

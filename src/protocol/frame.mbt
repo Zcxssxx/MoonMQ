@@ -17,7 +17,7 @@ pub struct Frame {
 
 ///|
 pub fn Frame::new(kind : FrameKind, channel : UInt16, payload : Bytes) -> Frame {
-  { kind, channel, payload }
+  { kind, channel, payload, }
 }
 
 ///|
@@ -67,7 +67,7 @@ pub fn encode_frame(frame : Frame) -> Result[Bytes, AmqpError] {
     return Err(FrameTooLarge)
   }
   let channel = encode_u16(frame.channel)
-  let size = encode_u32(payload_size.to_uint())
+  let size = encode_u32(payload_size.reinterpret_as_uint())
   let output : Array[Byte] = []
   output.push(frame_kind_byte(frame.kind))
   for byte in channel {
@@ -98,7 +98,7 @@ pub fn decode_frame(input : Bytes) -> Result[Frame, AmqpError] {
     Err(error) => return Err(error)
   }
   let size = match decode_u32(input[3:7].to_owned()) {
-    Ok(value) => value.to_int()
+    Ok(value) => value.reinterpret_as_int()
     Err(error) => return Err(error)
   }
   if size < 0 || size > DEFAULT_MAX_FRAME_PAYLOAD {

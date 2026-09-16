@@ -49,9 +49,9 @@ pub fn decode_u32(input : Bytes) -> Result[UInt, AmqpError] {
   } else {
     Ok(
       (input[0].to_uint() << 24) |
-        (input[1].to_uint() << 16) |
-        (input[2].to_uint() << 8) |
-        input[3].to_uint(),
+      (input[1].to_uint() << 16) |
+      (input[2].to_uint() << 8) |
+      input[3].to_uint(),
     )
   }
 }
@@ -79,13 +79,13 @@ pub fn decode_u64(input : Bytes) -> Result[UInt64, AmqpError] {
   }
   Ok(
     (input[0].to_uint64() << 56) |
-      (input[1].to_uint64() << 48) |
-      (input[2].to_uint64() << 40) |
-      (input[3].to_uint64() << 32) |
-      (input[4].to_uint64() << 24) |
-      (input[5].to_uint64() << 16) |
-      (input[6].to_uint64() << 8) |
-      input[7].to_uint64(),
+    (input[1].to_uint64() << 48) |
+    (input[2].to_uint64() << 40) |
+    (input[3].to_uint64() << 32) |
+    (input[4].to_uint64() << 24) |
+    (input[5].to_uint64() << 16) |
+    (input[6].to_uint64() << 8) |
+    input[7].to_uint64(),
   )
 }
 
@@ -110,8 +110,9 @@ pub fn decode_short_string(input : Bytes) -> Result[String, AmqpError] {
   if input.length() != size + 1 {
     return Err(TruncatedInput)
   }
-  match (try? @utf8.decode(input[1:])) {
-    Ok(value) => Ok(value)
-    Err(_) => Err(InvalidUtf8)
+  try @utf8.decode(input[1:]) catch {
+    _ => Err(InvalidUtf8)
+  } noraise {
+    value => Ok(value)
   }
 }

@@ -6,7 +6,7 @@ pub(all) enum Method {
     exchange~ : String,
     routing_key~ : String,
     mandatory~ : Bool,
-    immediate~ : Bool,
+    immediate~ : Bool
   )
   BasicAck(delivery_tag~ : UInt64, multiple~ : Bool)
   BasicReject(delivery_tag~ : UInt64, requeue~ : Bool)

@@ -1,6 +1,6 @@
 ///|
 /// Backend-independent AMQP 0-9-1 protocol primitives and codecs.
 import {
-  "moonbitlang/core/debug" @debug,
-  "moonbitlang/core/encoding/utf8" @utf8,
+  "moonbitlang/core/debug",
+  "moonbitlang/core/encoding/utf8",
 }

@@ -27,10 +27,6 @@ test "heartbeat frame has an empty payload" {
 
 ///|
 test "frame decoder rejects bad terminator and trailing bytes" {
-  assert_true(
-    decode_frame(b"\x08\x00\x00\x00\x00\x00\x00\x00") is Err(_),
-  )
-  assert_true(
-    decode_frame(b"\x08\x00\x00\x00\x00\x00\x00\xCE\x00") is Err(_),
-  )
+  assert_true(decode_frame(b"\x08\x00\x00\x00\x00\x00\x00\x00") is Err(_))
+  assert_true(decode_frame(b"\x08\x00\x00\x00\x00\x00\x00\xCE\x00") is Err(_))
 }
