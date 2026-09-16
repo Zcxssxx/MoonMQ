@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 1: Requirements & Discovery
+Phase 3: Implementation
 
 ## Phases
 
@@ -20,19 +20,19 @@ Phase 1: Requirements & Discovery
 
 ### Phase 2: Planning & Structure
 
-- [ ] Write and commit design specification
-- [ ] Write and self-review implementation plan
-- [ ] Create public GitHub repository and issue workflow
-- **Status:** in_progress
+- [x] Write and commit design specification
+- [x] Write and self-review implementation plan
+- [x] Create public GitHub repository and issue workflow
+- **Status:** complete
 
 ### Phase 3: Implementation
 
-- [ ] Add protocol value and frame codecs with failing tests first
-- [ ] Add AMQP method codecs and Core Profile dispatch
-- [ ] Add pure in-memory Broker topology and delivery semantics
+- [x] Add protocol value and frame codecs with failing tests first
+- [x] Add AMQP method codecs and Core Profile dispatch
+- [x] Add pure in-memory Broker topology and delivery semantics
 - [ ] Add native TCP connection/channel adapter
-- [ ] Add embedded and interoperability demos
-- **Status:** pending
+- [x] Add embedded and local smoke-test demos
+- **Status:** in_progress
 
 ### Phase 4: Testing & Verification
 
