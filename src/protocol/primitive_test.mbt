@@ -14,6 +14,11 @@ test "protocol header rejects unsupported revision" {
 }
 
 ///|
+test "protocol header reports truncation separately" {
+  assert_true(decode_protocol_header(b"AMQP\x00") is Err(TruncatedInput))
+}
+
+///|
 test "unsigned integers use network byte order" {
   assert_eq(encode_u16(UInt16(0x1234)), b"\x12\x34")
   assert_eq(encode_u32(0x12345678U), b"\x12\x34\x56\x78")
