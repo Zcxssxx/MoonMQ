@@ -19,7 +19,9 @@ This log is intentionally chronological. Each implementation milestone links its
 - Added frame-shape validation for heartbeat/channel rules and method identifiers, AMQP field validation for `basic.publish`, and explicit truncation errors for short protocol headers.
 - AMQP `frame-max=0` is treated as “no specific negotiated limit” while retaining MoonMQ's bounded default codec limit of 131072 bytes.
 - Verification: `moon check src/protocol`, `moon test src/protocol` — 22 tests passed; `moon fmt` and `git diff --check` clean.
-- Commits: `91774d0`, `803371b`, `1a4252f`, `0179106`, `7e990fa`, `f9d0b6f`, `2c1e75b`, `28de167`, `55cb641`.
+- Follow-up: zero delivery-tags are rejected for ordinary ACKs and all REJECTs; zero remains valid only for the AMQP multiple-acknowledgement form. The local `Int` frame limit is documented as a bounded host-side cap, separate from the wire-level unsigned field.
+- Verification: `moon check --target all`, `moon test --target all` — 23 tests passed on wasm, wasm-gc, js, and native.
+- Commits: `91774d0`, `803371b`, `1a4252f`, `0179106`, `7e990fa`, `f9d0b6f`, `2c1e75b`, `28de167`, `55cb641`, `e623d54`.
 
 ## 2026-09-16 — embedded Broker milestone ([#4](https://github.com/Zcxssxx/MoonMQ/issues/4), [#5](https://github.com/Zcxssxx/MoonMQ/issues/5))
 

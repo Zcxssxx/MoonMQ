@@ -109,15 +109,11 @@ test "delivery tag zero is restricted to multiple acknowledgements" {
     is Err(_),
   )
   assert_true(
-    decode_method(
-      b"\x00\x3C\x00\x50\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-    )
+    decode_method(b"\x00\x3C\x00\x50\x00\x00\x00\x00\x00\x00\x00\x00\x00")
     is Err(_),
   )
   assert_true(
-    decode_method(
-      b"\x00\x3C\x00\x5A\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-    )
+    decode_method(b"\x00\x3C\x00\x5A\x00\x00\x00\x00\x00\x00\x00\x00\x00")
     is Err(_),
   )
 }

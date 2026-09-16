@@ -12,6 +12,7 @@ pub enum AmqpError {
   FrameTooLarge
   UnsupportedMethod
   InvalidExchangeName
+  InvalidDeliveryTag
 }
 
 ///|
