@@ -40,6 +40,15 @@ pub fn Frame::payload(self : Frame) -> Bytes {
 const DEFAULT_MAX_FRAME_SIZE : Int = 131072
 
 ///|
+fn effective_max_frame_size(max_frame_size : Int) -> Int {
+  if max_frame_size == 0 {
+    DEFAULT_MAX_FRAME_SIZE
+  } else {
+    max_frame_size
+  }
+}
+
+///|
 fn validate_frame_shape(frame : Frame) -> Result[Unit, AmqpError] {
   match frame.kind {
     FrameHeartbeat =>
@@ -54,7 +63,12 @@ fn validate_frame_shape(frame : Frame) -> Result[Unit, AmqpError] {
       } else {
         Ok(())
       }
-    FrameMethod => Ok(())
+    FrameMethod =>
+      if frame.payload.length() < 4 {
+        Err(InvalidFrameShape)
+      } else {
+        Ok(())
+      }
   }
 }
 
@@ -89,11 +103,12 @@ pub fn encode_frame_with_max(
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  if max_frame_size < 8 {
+  let limit = effective_max_frame_size(max_frame_size)
+  if limit < 8 {
     return Err(FrameTooLarge)
   }
   let payload_size = frame.payload.length()
-  if payload_size > max_frame_size - 8 {
+  if payload_size > limit - 8 {
     return Err(FrameTooLarge)
   }
   let channel = encode_u16(frame.channel)
@@ -139,7 +154,8 @@ pub fn decode_frame_with_max(
     Ok(value) => value.reinterpret_as_int()
     Err(error) => return Err(error)
   }
-  if max_frame_size < 8 || size < 0 || size > max_frame_size - 8 {
+  let limit = effective_max_frame_size(max_frame_size)
+  if limit < 8 || size < 0 || size > limit - 8 {
     return Err(FrameTooLarge)
   }
   let total_size = 8 + size
