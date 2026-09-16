@@ -1,0 +1,5 @@
+///|
+/// Deterministic, backend-independent in-memory broker.
+import {
+  "moonbitlang/core/debug",
+}

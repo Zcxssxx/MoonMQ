@@ -1,0 +1,88 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Zcxssxx/moonmq/src/broker"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+type Binding
+
+pub struct Broker {
+  exchanges : Array[ExchangeState]
+  queues : Array[QueueState]
+  bindings : Array[Binding]
+  in_flight : Array[InFlight]
+  mut next_tag : UInt64
+  mut next_queue_id : Int
+}
+pub fn Broker::ack(Self, UInt64) -> Result[Unit, BrokerError]
+pub fn Broker::bind_queue(Self, String, String, String) -> Result[Unit, BrokerError]
+pub fn Broker::cancel_consumer(Self, ConsumerHandle) -> Result[Unit, BrokerError]
+pub fn Broker::consume(Self, String, String, Int) -> Result[ConsumerHandle, BrokerError]
+pub fn Broker::declare_exchange(Self, String, ExchangeKind) -> Result[Unit, BrokerError]
+pub fn Broker::declare_queue(Self, String) -> Result[String, BrokerError]
+pub fn Broker::get(Self, String) -> Result[Delivery?, BrokerError]
+pub fn Broker::new() -> Self
+pub fn Broker::poll(Self, ConsumerHandle) -> Result[Delivery?, BrokerError]
+pub fn Broker::publish(Self, String, String, Bytes) -> Result[Int, BrokerError]
+pub fn Broker::reject(Self, UInt64, Bool) -> Result[Unit, BrokerError]
+
+pub enum BrokerError {
+  UnknownExchange
+  UnknownQueue
+  ExchangeKindMismatch
+  DuplicateBinding
+  DuplicateConsumer
+  UnknownConsumer
+  UnknownDelivery
+  InvalidPrefetch
+} derive(Eq, @debug.Debug)
+
+pub struct ConsumerHandle {
+  queue : String
+  tag : String
+} derive(Eq, @debug.Debug)
+
+pub struct Delivery {
+  tag : UInt64
+  queue : String
+  consumer_tag : String
+  message : Message
+} derive(Eq, @debug.Debug)
+pub fn Delivery::body(Self) -> Bytes
+pub fn Delivery::consumer_tag(Self) -> String
+pub fn Delivery::queue(Self) -> String
+pub fn Delivery::redelivered(Self) -> Bool
+pub fn Delivery::routing_key(Self) -> String
+pub fn Delivery::tag(Self) -> UInt64
+
+pub(all) enum ExchangeKind {
+  ExchangeDirect
+  ExchangeFanout
+  ExchangeTopic
+} derive(Eq, @debug.Debug)
+
+type ExchangeState
+
+type InFlight
+
+pub struct Message {
+  body : Bytes
+  routing_key : String
+  redelivered : Bool
+} derive(Eq, @debug.Debug)
+pub fn Message::body(Self) -> Bytes
+pub fn Message::new(Bytes, String) -> Self
+pub fn Message::redelivered(Self) -> Bool
+pub fn Message::routing_key(Self) -> String
+
+type QueueState
+
+// Type aliases
+
+// Traits
