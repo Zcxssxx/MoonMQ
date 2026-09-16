@@ -13,3 +13,4 @@ All notable changes to MoonMQ are recorded here. The project is currently pre-1.
 - Added delivery-tag validation for the AMQP zero-tag acknowledgement rule.
 - Added a deterministic in-memory Broker with direct, fanout, topic, and default-exchange routing plus pull/push delivery, prefetch, ack, reject/requeue, and consumer cancellation.
 - Added local embedded-Broker demos that exercise UTF-8 payload bytes.
+- Preserved deterministic round-robin position when a middle consumer is cancelled.

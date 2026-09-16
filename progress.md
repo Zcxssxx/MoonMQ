@@ -36,6 +36,7 @@
 - Native TCP transport remains the next major implementation slice.
 - Protocol PRs #7 and #8 and Broker PR #9 are merged into the default branch with successful local verification.
 - The portable Core Profile + embedded Broker MVP is ready for hackathon submission; native TCP remains explicitly deferred.
+- Broker review follow-up #10 is implemented locally in PR #11 and awaiting merge.
 
 ## Test Results
 
@@ -44,7 +45,7 @@
 | MoonBit toolchain version | `moon version --all` | Current stable toolchain | `moon 0.1.20260915`, `moonc 0.10.13` | ✓ |
 | GitHub identity | `gh api user --jq .login` | `Zcxssxx` | `Zcxssxx` | ✓ |
 | Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 23 passed, 0 failed | ✓ |
-| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 33 passed on wasm, wasm-gc, js, native | ✓ |
+| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 36 passed on wasm, wasm-gc, js, native | ✓ |
 | Embedded CLI demo | `moon run cmd/moonmq` | Publish, consume, ack locally | Passed with UTF-8 payload | ✓ |
 | Embedded example | `moon run examples/embedded` | Publish and consume locally | Passed with UTF-8 payload | ✓ |
 
