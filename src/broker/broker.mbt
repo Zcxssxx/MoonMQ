@@ -412,7 +412,16 @@ pub fn Broker::cancel_consumer(
       in_flight_index += 1
     }
   }
+  let next_consumer = self.queues[queue_index].next_consumer
   ignore(self.queues[queue_index].consumers.remove(consumer_index))
+  let consumer_count = self.queues[queue_index].consumers.length()
+  if consumer_count == 0 {
+    self.queues[queue_index].next_consumer = 0
+  } else if next_consumer > consumer_index {
+    self.queues[queue_index].next_consumer = next_consumer - 1
+  } else {
+    self.queues[queue_index].next_consumer = next_consumer % consumer_count
+  }
   if recovered.length() > 0 {
     for item in self.queues[queue_index].messages {
       recovered.push(item)
