@@ -23,13 +23,20 @@ This log is intentionally chronological. Each implementation milestone links its
 - Verification: `moon check --target all`, `moon test --target all` — 23 tests passed on wasm, wasm-gc, js, and native.
 - Commits: `91774d0`, `803371b`, `1a4252f`, `0179106`, `7e990fa`, `f9d0b6f`, `2c1e75b`, `28de167`, `55cb641`, `8a3d7df`, `19c60a0`, `e623d54`, `a0f4edb`.
 
-## 2026-09-16 — embedded Broker milestone ([#4](https://github.com/Zcxssxx/MoonMQ/issues/4), [#5](https://github.com/Zcxssxx/MoonMQ/issues/5))
+## 2026-09-16 — embedded Broker milestone ([#4](https://github.com/Zcxssxx/MoonMQ/issues/4), [#5](https://github.com/Zcxssxx/MoonMQ/issues/5), [PR #9](https://github.com/Zcxssxx/MoonMQ/pull/9))
 
 - Added deterministic in-memory direct, fanout, topic, and default-exchange routing with duplicate-binding protection.
 - Added pull delivery, push consumers, prefetch, round-robin dispatch, acknowledgements, reject/requeue, and consumer cancellation cleanup.
 - Fixed acknowledgement/requeue pumping and generated queue-name collisions; added UTF-8 payload and local demo fixtures.
 - Verification: `moon check --target all`, `moon test --target all` — 33 tests passed on wasm, wasm-gc, js, and native; both local demos publish and consume successfully.
 - Commits: `cb3f385`, `6dbda72`, `0b62d55`, `ffb5961`, `316ed95`, `683981e`, `6332689`, `2aa7c77`, `5e43469`.
+- Scope note: the embedded demo portion of #5 is delivered; the native TCP/session adapter remains a separate follow-up and is not included in the interoperability claim.
+
+## 2026-09-16 — portable MVP submission boundary
+
+- PR #7 (protocol), PR #8 (protocol correctness), and PR #9 (embedded Broker) are merged into `main`.
+- Final local verification on the merged tree: 33 tests passed on wasm, wasm-gc, js, and native; both demos passed; formatting and generated public interfaces were checked.
+- The submission boundary is the portable AMQP Core Profile plus deterministic embedded Broker. Native TCP, external-client interoperability, and Mooncakes publication remain explicitly tracked follow-ups rather than unverified claims.
 
 ## Record format for future entries
 

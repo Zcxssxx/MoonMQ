@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 3: Implementation
+Phase 5: Delivery (portable MVP boundary)
 
 ## Phases
 
@@ -32,24 +32,24 @@ Phase 3: Implementation
 - [x] Add pure in-memory Broker topology and delivery semantics
 - [ ] Add native TCP connection/channel adapter
 - [x] Add embedded and local smoke-test demos
-- **Status:** in_progress
+- **Status:** complete for the portable MVP; native TCP is deferred as a follow-up issue
 
 ### Phase 4: Testing & Verification
 
-- [ ] Run `moon check --target all`
-- [ ] Run `moon test --target all`
-- [ ] Run native integration and demo smoke tests
-- [ ] Run `moon fmt --check` or the current equivalent
-- [ ] Run `moon info` and review public interface changes
-- **Status:** pending
+- [x] Run `moon check --target all`
+- [x] Run `moon test --target all`
+- [x] Run native core checks and demo smoke tests
+- [x] Run `moon fmt --check` or the current equivalent
+- [x] Run `moon info` and review public interface changes
+- **Status:** complete for the portable Core Profile and embedded Broker scope
 
 ### Phase 5: Delivery
 
-- [ ] Finish README, changelog, license and compatibility notes
-- [ ] Configure GitHub Actions CI
-- [ ] Publish meaningful commits, Issues and PRs on the default branch
+- [x] Finish README, changelog, license and compatibility notes
+- [x] Configure GitHub Actions CI
+- [x] Publish meaningful commits, Issues and PRs on the default branch
 - [ ] Prepare Mooncakes publication metadata and acceptance checklist
-- **Status:** pending
+- **Status:** in_progress; portable MVP is ready, publication metadata remains
 
 ## Key Questions
 

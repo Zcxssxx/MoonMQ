@@ -26,14 +26,16 @@
   - Created the public `Zcxssxx/MoonMQ` repository history without replacing its existing initial README commit.
   - Created Issues #1–#6 for scaffold, protocol, Broker, transport and release work.
 - Files created/modified:
-  - `docs/superpowers/specs/2026-09-16-moonmq-design.md` (planned)
-  - `docs/superpowers/plans/2026-09-16-moonmq-implementation-plan.md` (planned)
+  - `docs/superpowers/specs/2026-09-16-moonmq-design.md`
+  - `docs/superpowers/plans/2026-09-16-moonmq-implementation-plan.md`
 
 ### Phase 3: Implementation
 
-- **Status:** in_progress
+- **Status:** complete for portable MVP
 - Protocol Core Profile and embedded Broker slices are implemented on feature branches.
 - Native TCP transport remains the next major implementation slice.
+- Protocol PRs #7 and #8 and Broker PR #9 are merged into the default branch with successful local verification.
+- The portable Core Profile + embedded Broker MVP is ready for hackathon submission; native TCP remains explicitly deferred.
 
 ## Test Results
 
@@ -41,7 +43,7 @@
 |------|-------|----------|--------|--------|
 | MoonBit toolchain version | `moon version --all` | Current stable toolchain | `moon 0.1.20260915`, `moonc 0.10.13` | ✓ |
 | GitHub identity | `gh api user --jq .login` | `Zcxssxx` | `Zcxssxx` | ✓ |
-| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 22 passed, 0 failed | ✓ |
+| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 23 passed, 0 failed | ✓ |
 | Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 33 passed on wasm, wasm-gc, js, native | ✓ |
 | Embedded CLI demo | `moon run cmd/moonmq` | Publish, consume, ack locally | Passed with UTF-8 payload | ✓ |
 | Embedded example | `moon run examples/embedded` | Publish and consume locally | Passed with UTF-8 payload | ✓ |
