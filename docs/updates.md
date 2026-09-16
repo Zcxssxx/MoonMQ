@@ -26,7 +26,7 @@ This log is intentionally chronological. Each implementation milestone links its
 - Added deterministic in-memory direct, fanout, topic, and default-exchange routing with duplicate-binding protection.
 - Added pull delivery, push consumers, prefetch, round-robin dispatch, acknowledgements, reject/requeue, and consumer cancellation cleanup.
 - Fixed acknowledgement/requeue pumping and generated queue-name collisions; added UTF-8 payload and local demo fixtures.
-- Verification: `moon check`, `moon test` — 25 project tests passed on the protocol-plus-Broker branch; both local demos publish and consume successfully.
+- Verification: `moon check --target all`, `moon test --target all` — 32 tests passed on wasm, wasm-gc, js, and native; both local demos publish and consume successfully.
 - Commits: `cb3f385`, `6dbda72`, `0b62d55`, `ffb5961`, `316ed95`, `683981e`, `6332689`, `2aa7c77`, `5e43469`.
 
 ## Record format for future entries
