@@ -2,19 +2,17 @@
 test "field tables round trip supported scalar and nested values" {
   let expected = FieldTable::new([
     ("enabled", FieldBoolean(true)),
-    ("name", FieldShortString("moon")),
+    ("name", FieldLongString(b"moon")),
     ("payload", FieldLongString(b"\x00\xFF")),
-    (
-      "nested",
-      FieldTableValue(FieldTable::new([("count", FieldInt(42))])),
-    ),
+    ("nested", FieldTableValue(FieldTable::new([("count", FieldInt(42))]))),
     ("items", FieldArray([FieldBoolean(false), FieldVoid])),
   ])
   match encode_field_table(expected) {
-    Ok(encoded) => match decode_field_table(encoded) {
-      Ok(actual) => assert_eq(actual, expected)
-      Err(_) => fail("field table decoding unexpectedly failed")
-    }
+    Ok(encoded) =>
+      match decode_field_table(encoded) {
+        Ok(actual) => assert_eq(actual, expected)
+        Err(_) => fail("field table decoding unexpectedly failed")
+      }
     Err(_) => fail("field table encoding unexpectedly failed")
   }
 }
@@ -25,7 +23,7 @@ test "empty field tables use a zero length prefix" {
   match encode_field_table(empty) {
     Ok(encoded) => {
       assert_eq(encoded, b"\x00\x00\x00\x00")
-      assert_true(decode_field_table(encoded) is Ok(empty))
+      assert_true(decode_field_table(encoded) is Ok(_))
     }
     Err(_) => fail("empty field table encoding unexpectedly failed")
   }

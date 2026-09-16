@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn decode_field_table(Bytes) -> Result[FieldTable, AmqpError]
+
 pub fn decode_frame(Bytes) -> Result[Frame, AmqpError]
 
 pub fn decode_frame_with_max(Bytes, Int) -> Result[Frame, AmqpError]
@@ -21,6 +23,8 @@ pub fn decode_u16(Bytes) -> Result[UInt16, AmqpError]
 pub fn decode_u32(Bytes) -> Result[UInt, AmqpError]
 
 pub fn decode_u64(Bytes) -> Result[UInt64, AmqpError]
+
+pub fn encode_field_table(FieldTable) -> Result[Bytes, AmqpError]
 
 pub fn encode_frame(Frame) -> Result[Bytes, AmqpError]
 
@@ -54,7 +58,25 @@ pub enum AmqpError {
   UnsupportedMethod
   InvalidExchangeName
   InvalidDeliveryTag
+  InvalidFieldValue
+  FieldTableTooLarge
 }
+
+pub struct FieldTable {
+  entries : Array[(String, FieldValue)]
+} derive(Eq, @debug.Debug)
+pub fn FieldTable::entries(Self) -> Array[(String, FieldValue)]
+pub fn FieldTable::new(Array[(String, FieldValue)]) -> Self
+
+pub(all) enum FieldValue {
+  FieldBoolean(Bool)
+  FieldInt(Int)
+  FieldLongString(Bytes)
+  FieldTableValue(FieldTable)
+  FieldArray(Array[FieldValue])
+  FieldTimestamp(UInt64)
+  FieldVoid
+} derive(Eq, @debug.Debug)
 
 pub struct Frame {
   kind : FrameKind

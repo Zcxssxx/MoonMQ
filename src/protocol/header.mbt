@@ -13,6 +13,8 @@ pub enum AmqpError {
   UnsupportedMethod
   InvalidExchangeName
   InvalidDeliveryTag
+  InvalidFieldValue
+  FieldTableTooLarge
 }
 
 ///|
