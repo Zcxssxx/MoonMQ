@@ -132,6 +132,42 @@ test "canceling a middle consumer preserves round robin position" {
 }
 
 ///|
+test "canceling the next consumer advances to its successor" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("round-robin-next-cancel"))
+  let first = assert_ok(broker.consume(queue, "first", 0))
+  let middle = assert_ok(broker.consume(queue, "middle", 0))
+  let last = assert_ok(broker.consume(queue, "last", 0))
+  ignore(assert_ok(broker.publish("", queue, b"one")))
+  let delivery = match broker.poll(first) {
+    Ok(Some(delivery)) => delivery
+    _ => fail("first consumer should receive the first message")
+  }
+  assert_ok(broker.ack(delivery.tag()))
+  assert_ok(broker.cancel_consumer(middle))
+  ignore(assert_ok(broker.publish("", queue, b"two")))
+  match broker.poll(last) {
+    Ok(Some(delivery)) => assert_eq(delivery.body(), b"two")
+    _ => fail("canceling the next consumer should advance to its successor")
+  }
+}
+
+///|
+test "canceling a later consumer keeps the earlier cursor" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("round-robin-earlier-cancel"))
+  let first = assert_ok(broker.consume(queue, "first", 0))
+  let middle = assert_ok(broker.consume(queue, "middle", 0))
+  ignore(assert_ok(broker.consume(queue, "last", 0)))
+  assert_ok(broker.cancel_consumer(middle))
+  ignore(assert_ok(broker.publish("", queue, b"one")))
+  match broker.poll(first) {
+    Ok(Some(delivery)) => assert_eq(delivery.body(), b"one")
+    _ => fail("canceling a later consumer should keep the earlier cursor")
+  }
+}
+
+///|
 test "cancel requeues unacknowledged push deliveries" {
   let broker = Broker::new()
   let queue = assert_ok(broker.declare_queue("cancel"))
