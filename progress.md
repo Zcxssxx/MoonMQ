@@ -42,7 +42,7 @@
 | MoonBit toolchain version | `moon version --all` | Current stable toolchain | `moon 0.1.20260915`, `moonc 0.10.13` | ✓ |
 | GitHub identity | `gh api user --jq .login` | `Zcxssxx` | `Zcxssxx` | ✓ |
 | Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 22 passed, 0 failed | ✓ |
-| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 32 passed on wasm, wasm-gc, js, native | ✓ |
+| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 33 passed on wasm, wasm-gc, js, native | ✓ |
 | Embedded CLI demo | `moon run cmd/moonmq` | Publish, consume, ack locally | Passed with UTF-8 payload | ✓ |
 | Embedded example | `moon run examples/embedded` | Publish and consume locally | Passed with UTF-8 payload | ✓ |
 
