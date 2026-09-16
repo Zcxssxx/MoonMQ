@@ -15,8 +15,9 @@ This log is intentionally chronological. Each implementation milestone will link
 - Added red-first tests for AMQP protocol headers, network-byte-order integers, UTF-8 short strings, frame envelopes, and typed method payloads.
 - Implemented bounded frame decoding with size, terminator, type, and truncation checks.
 - Implemented typed `basic.publish`, `basic.ack`, and `basic.reject` payload encode/decode paths.
-- Verification: `moon check`, `moon test` — 12 tests passed; `git diff --check` clean.
-- Commits: `91774d0`, `803371b`, `1a4252f`.
+- Reviewer follow-up: frame-max now reserves the 8-byte envelope overhead; fixed-width integer decoders reject trailing bytes; u64, BasicAck/BasicReject, unsupported-type, declared-size, and oversized-payload cases are covered.
+- Verification: `moon check src/protocol`, `moon test src/protocol` — 15 tests passed; `git diff --check` clean.
+- Commits: `91774d0`, `803371b`, `1a4252f`, `0179106`.
 
 ## Record format for future entries
 
