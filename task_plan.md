@@ -6,7 +6,7 @@
 
 ## Current Phase
 
-Phase 5: Delivery (portable MVP boundary)
+Phase 6: Core Profile expansion
 
 ## Phases
 
@@ -50,6 +50,16 @@ Phase 5: Delivery (portable MVP boundary)
 - [x] Publish meaningful commits, Issues and PRs on the default branch
 - [ ] Prepare Mooncakes publication metadata and acceptance checklist
 - **Status:** in_progress; portable MVP is ready, publication metadata remains
+
+### Phase 6: Core Profile expansion
+
+- [ ] Add AMQP field-table and long-string codecs with bounded readers
+- [ ] Add connection, channel, exchange, queue, and Basic lifecycle method variants
+- [ ] Add Basic content properties and content-header/body sequencing
+- [ ] Add a portable session state machine that translates protocol events to Broker actions
+- [ ] Add native TCP adapter behind the session interface where the current async runtime supports it
+- [ ] Add loopback/session tests and update the interoperability matrix
+- **Status:** planned; tracked by Issue #12 and the existing transport Issue #5
 
 ## Key Questions
 

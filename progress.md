@@ -2,6 +2,13 @@
 
 ## Session: 2026-09-16
 
+### Continuation: full Core Profile delivery
+
+- **Status:** Phase 6 planned and authorized by the user
+- Completed the portable-MVP audit and confirmed that the current implementation intentionally defers connection/channel methods, content sequencing, and native TCP.
+- Chosen continuation: expand the portable protocol first, then add a session layer and native adapter without changing the deterministic Broker core.
+- Created Issue #12 for the Core Profile/content-sequencing expansion; existing #5 remains the transport milestone.
+
 ### Phase 1: Requirements & Discovery
 
 - **Status:** complete
