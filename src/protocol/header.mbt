@@ -5,10 +5,13 @@ pub enum AmqpError {
   TruncatedInput
   ValueTooLong
   InvalidUtf8
+  InvalidShortString
   InvalidFrameTerminator
+  InvalidFrameShape
   UnsupportedFrameType
   FrameTooLarge
   UnsupportedMethod
+  InvalidExchangeName
 }
 
 ///|

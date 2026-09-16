@@ -74,7 +74,8 @@ test "basic.publish rejects nonzero ticket and invalid exchange name" {
         mandatory=false,
         immediate=false,
       ),
-    ) is Err(_),
+    )
+    is Err(_),
   )
   assert_true(
     encode_method(
@@ -85,7 +86,10 @@ test "basic.publish rejects nonzero ticket and invalid exchange name" {
         mandatory=false,
         immediate=false,
       ),
-    ) is Err(_),
+    )
+    is Err(_),
   )
-  assert_true(decode_method(b"\x00\x3C\x00\x28\x00\x01\x06events\x05hello\x00") is Err(_))
+  assert_true(
+    decode_method(b"\x00\x3C\x00\x28\x00\x01\x06events\x05hello\x00") is Err(_),
+  )
 }

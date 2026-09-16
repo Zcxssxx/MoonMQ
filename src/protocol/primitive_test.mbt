@@ -40,7 +40,7 @@ test "short strings carry a UTF-8 byte length" {
 
 ///|
 test "short strings reject NUL bytes" {
-  assert_true(encode_short_string("a\x00b") is Err(_))
+  assert_true(encode_short_string("a\u0000b") is Err(_))
   assert_true(decode_short_string(b"\x03a\x00b") is Err(_))
 }
 

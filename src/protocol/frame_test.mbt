@@ -44,17 +44,17 @@ test "frame payload respects frame-max overhead" {
 ///|
 test "frame kinds enforce channel and payload invariants" {
   assert_true(
-    encode_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(1), b"")) is Err(_),
+    encode_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(1), b""))
+    is Err(_),
   )
   assert_true(
-    encode_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(0), b"x")) is Err(_),
+    encode_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(0), b"x"))
+    is Err(_),
   )
   assert_true(
     encode_frame(Frame::new(FrameKind::FrameBody, UInt16(0), b"x")) is Err(_),
   )
-  assert_true(
-    decode_frame(b"\x08\x00\x01\x00\x00\x00\x00\xCE") is Err(_),
-  )
+  assert_true(decode_frame(b"\x08\x00\x01\x00\x00\x00\x00\xCE") is Err(_))
 }
 
 ///|

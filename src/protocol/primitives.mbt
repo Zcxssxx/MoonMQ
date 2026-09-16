@@ -96,6 +96,11 @@ pub fn encode_short_string(value : String) -> Result[Bytes, AmqpError] {
   if encoded.length() > 255 {
     Err(ValueTooLong)
   } else {
+    for byte in encoded {
+      if byte == b'\x00' {
+        return Err(InvalidShortString)
+      }
+    }
     Ok(concat_bytes(Bytes::from_array([encoded.length().to_byte()]), encoded))
   }
 }
@@ -109,6 +114,11 @@ pub fn decode_short_string(input : Bytes) -> Result[String, AmqpError] {
   let size = input[0].to_int()
   if input.length() != size + 1 {
     return Err(TruncatedInput)
+  }
+  for byte in input[1:] {
+    if byte == b'\x00' {
+      return Err(InvalidShortString)
+    }
   }
   try @utf8.decode(input[1:]) catch {
     _ => Err(InvalidUtf8)
