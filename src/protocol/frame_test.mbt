@@ -29,4 +29,14 @@ test "heartbeat frame has an empty payload" {
 test "frame decoder rejects bad terminator and trailing bytes" {
   assert_true(decode_frame(b"\x08\x00\x00\x00\x00\x00\x00\x00") is Err(_))
   assert_true(decode_frame(b"\x08\x00\x00\x00\x00\x00\x00\xCE\x00") is Err(_))
+  assert_true(decode_frame(b"\x04\x00\x00\x00\x00\x00\x00\xCE") is Err(_))
+  assert_true(decode_frame(b"\x01\x00\x00\x00\x00\x00\x02\x00\xCE") is Err(_))
+  assert_true(decode_frame(b"\x01\x00\x00\x00\x00\x00\x02\x01\xCE") is Err(_))
+}
+
+///|
+test "frame payload respects frame-max overhead" {
+  let too_large = Bytes::make(131065, b'\x00')
+  let frame = Frame::new(FrameKind::FrameBody, UInt16(1), too_large)
+  assert_true(encode_frame(frame) is Err(_))
 }

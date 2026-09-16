@@ -44,3 +44,21 @@ test "method decoder round trips basic.publish" {
 test "method decoder rejects truncated arguments" {
   assert_true(decode_method(b"\x00\x3C\x00\x28\x00") is Err(_))
 }
+
+///|
+test "basic.ack and basic.reject decode delivery tags and flags" {
+  match decode_method(b"\x00\x3C\x00\x50\x00\x00\x00\x00\x00\x00\x00\x2A\x01") {
+    Ok(BasicAck(delivery_tag~, multiple~)) => {
+      assert_eq(delivery_tag, UInt64(42))
+      assert_true(multiple)
+    }
+    _ => fail("basic.ack decoding unexpectedly failed")
+  }
+  match decode_method(b"\x00\x3C\x00\x5A\x00\x00\x00\x00\x00\x00\x00\x2A\x01") {
+    Ok(BasicReject(delivery_tag~, requeue~)) => {
+      assert_eq(delivery_tag, UInt64(42))
+      assert_true(requeue)
+    }
+    _ => fail("basic.reject decoding unexpectedly failed")
+  }
+}

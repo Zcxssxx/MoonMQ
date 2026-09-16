@@ -34,7 +34,7 @@ pub fn encode_u32(value : UInt) -> Bytes {
 ///|
 /// Decode an unsigned 16-bit integer in AMQP network byte order.
 pub fn decode_u16(input : Bytes) -> Result[UInt16, AmqpError] {
-  if input.length() < 2 {
+  if input.length() != 2 {
     Err(TruncatedInput)
   } else {
     Ok((input[0].to_uint16() << 8) | input[1].to_uint16())
@@ -44,7 +44,7 @@ pub fn decode_u16(input : Bytes) -> Result[UInt16, AmqpError] {
 ///|
 /// Decode an unsigned 32-bit integer in AMQP network byte order.
 pub fn decode_u32(input : Bytes) -> Result[UInt, AmqpError] {
-  if input.length() < 4 {
+  if input.length() != 4 {
     Err(TruncatedInput)
   } else {
     Ok(
@@ -74,7 +74,7 @@ pub fn encode_u64(value : UInt64) -> Bytes {
 ///|
 /// Decode an unsigned 64-bit integer in AMQP network byte order.
 pub fn decode_u64(input : Bytes) -> Result[UInt64, AmqpError] {
-  if input.length() < 8 {
+  if input.length() != 8 {
     return Err(TruncatedInput)
   }
   Ok(

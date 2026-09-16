@@ -36,7 +36,8 @@ pub fn Frame::payload(self : Frame) -> Bytes {
 }
 
 ///|
-const DEFAULT_MAX_FRAME_PAYLOAD : Int = 131072
+// AMQP frame-max includes the seven-byte frame header and one-byte terminator.
+const DEFAULT_MAX_FRAME_PAYLOAD : Int = 131064
 
 ///|
 fn frame_kind_byte(kind : FrameKind) -> Byte {
