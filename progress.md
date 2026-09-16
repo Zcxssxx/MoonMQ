@@ -9,6 +9,8 @@
 - Chosen continuation: expand the portable protocol first, then add a session layer and native adapter without changing the deterministic Broker core.
 - Created Issue #12 for the Core Profile/content-sequencing expansion; existing #5 remains the transport milestone.
 - Completed Phase 6 Task 1: bounded AMQP field tables; Task 2 (method families) is next.
+- Completed Phase 6 Task 2: typed connection/channel/exchange/queue/Basic method families, long strings, exact readers, flag validation, and golden-wire round trips.
+- Verification for the method milestone: `moon check --target all`, `moon test --target all` — 45/45 passed on wasm, wasm-gc, js, and native.
 
 ### Phase 1: Requirements & Discovery
 
@@ -52,8 +54,8 @@
 |------|-------|----------|--------|--------|
 | MoonBit toolchain version | `moon version --all` | Current stable toolchain | `moon 0.1.20260915`, `moonc 0.10.13` | ✓ |
 | GitHub identity | `gh api user --jq .login` | `Zcxssxx` | `Zcxssxx` | ✓ |
-| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 23 passed, 0 failed | ✓ |
-| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 39 passed on wasm, wasm-gc, js, native | ✓ |
+| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 32 passed, 0 failed | ✓ |
+| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 45 passed on wasm, wasm-gc, js, native | ✓ |
 | Embedded CLI demo | `moon run cmd/moonmq` | Publish, consume, ack locally | Passed with UTF-8 payload | ✓ |
 | Embedded example | `moon run examples/embedded` | Publish and consume locally | Passed with UTF-8 payload | ✓ |
 

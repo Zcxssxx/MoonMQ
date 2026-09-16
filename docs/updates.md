@@ -61,3 +61,11 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - Added red-first tests for empty tables, nested round trips, unknown tags, truncation, and declared-size mismatches.
 - Verification: `moon check --target all`, `moon test --target all` — 39 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check` and `moon info` completed.
 - Commit: `e3a3020`.
+
+## 2026-09-16 — Core Profile expansion: method families ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12))
+
+- Added typed `connection`, `channel`, `exchange`, `queue`, and Basic lifecycle method variants, including topology arguments, delivery metadata, and response methods.
+- Added bounded long-string helpers for arbitrary challenge/response bytes and exact method readers that reject truncation, trailing bytes, and reserved flag bits.
+- Added red-first golden-wire and round-trip tests for connection start/start-ok/tune, exchange declare, queue/consumer flows, and long strings.
+- Verification: `moon check --target all`, `moon test --target all` — 45 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
+- Commits: `e3a3020`, `45b12b3`, and the implementation commit for this milestone.

@@ -32,7 +32,7 @@ Phase 6: Core Profile expansion
 - [x] Add pure in-memory Broker topology and delivery semantics
 - [ ] Add native TCP connection/channel adapter
 - [x] Add embedded and local smoke-test demos
-- **Status:** complete for the portable MVP; native TCP is deferred as a follow-up issue
+- **Status:** in_progress for the expanded Core Profile; native TCP remains pending
 
 ### Phase 4: Testing & Verification
 
@@ -41,7 +41,7 @@ Phase 6: Core Profile expansion
 - [x] Run native core checks and demo smoke tests
 - [x] Run `moon fmt --check` or the current equivalent
 - [x] Run `moon info` and review public interface changes
-- **Status:** complete for the portable Core Profile and embedded Broker scope
+- **Status:** in_progress while content/session/native coverage is being added
 
 ### Phase 5: Delivery
 
@@ -54,12 +54,12 @@ Phase 6: Core Profile expansion
 ### Phase 6: Core Profile expansion
 
 - [x] Add AMQP field-table and long-string codecs with bounded readers
-- [ ] Add connection, channel, exchange, queue, and Basic lifecycle method variants
+- [x] Add connection, channel, exchange, queue, and Basic lifecycle method variants
 - [ ] Add Basic content properties and content-header/body sequencing
 - [ ] Add a portable session state machine that translates protocol events to Broker actions
 - [ ] Add native TCP adapter behind the session interface where the current async runtime supports it
 - [ ] Add loopback/session tests and update the interoperability matrix
-- **Status:** planned; tracked by Issue #12 and the existing transport Issue #5
+- **Status:** in_progress; tracked by Issue #12 and the existing transport Issue #5
 
 ## Key Questions
 

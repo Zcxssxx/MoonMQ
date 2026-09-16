@@ -15,3 +15,5 @@ All notable changes to MoonMQ are recorded here. The project is currently pre-1.
 - Added local embedded-Broker demos that exercise UTF-8 payload bytes.
 - Preserved deterministic round-robin position when a middle consumer is cancelled.
 - Added bounded AMQP field-table/array codecs for Boolean, Int, longstr, nested table/array, timestamp, and void values.
+- Added typed AMQP connection, channel, exchange, queue, and Basic lifecycle method codecs with exact-length readers and reserved-bit validation.
+- Added AMQP long-string helpers that preserve arbitrary bytes within a bounded 1 MiB host-side limit.

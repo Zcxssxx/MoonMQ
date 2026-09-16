@@ -12,13 +12,13 @@ This repository is in active development for the 2026 MoonBit September Hackatho
 
 Current milestone:
 
-- bounded AMQP protocol-header, frame, and typed method codecs;
-- a documented Core Profile centered on `basic.publish`, `basic.ack`, and `basic.reject`;
+- bounded AMQP protocol-header, frame, field-table, long-string, and typed method codecs;
+- a documented Core Profile covering connection/channel lifecycle, exchange/queue topology, and Basic delivery methods;
 - pure in-memory default, direct, fanout, and topic routing;
 - pull and push consumption with acknowledgements, reject/requeue, prefetch, and cancellation cleanup;
 - an embedded local demo that runs without RabbitMQ or any other service.
 
-Next milestone: a native TCP/session adapter isolated from the portable protocol and Broker packages.
+Next milestones: Basic content-header/body sequencing, a portable session boundary, and a native TCP adapter isolated from the protocol and Broker packages.
 
 Out of scope for the first release: AMQP 1.0, persistence/recovery, clustering, replication, transactions, publisher confirms, TLS, authentication/ACL, and the full RabbitMQ extension surface.
 
