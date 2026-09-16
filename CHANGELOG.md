@@ -9,3 +9,5 @@ All notable changes to MoonMQ are recorded here. The project is currently pre-1.
 - Scaffolded the MoonBit module and repository governance files.
 - Added bounded protocol-header, integer, short-string, and AMQP frame codecs.
 - Added typed `basic.publish`, `basic.ack`, and `basic.reject` method payload codecs with malformed-input checks.
+- Added deterministic in-memory direct/fanout/topic routing, pull/push delivery, ack/requeue, and prefetch behavior.
+- Added `cmd/moonmq` and `examples/embedded` local demos that require no external broker.

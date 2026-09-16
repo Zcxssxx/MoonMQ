@@ -19,6 +19,13 @@ This log is intentionally chronological. Each implementation milestone will link
 - Verification: `moon check src/protocol`, `moon test src/protocol` — 15 tests passed; `git diff --check` clean.
 - Commits: `91774d0`, `803371b`, `1a4252f`, `0179106`.
 
+## 2026-09-16 — embedded Broker milestone ([#4](https://github.com/Zcxssxx/MoonMQ/issues/4), [#5](https://github.com/Zcxssxx/MoonMQ/issues/5))
+
+- Added a backend-independent in-memory topology with default/direct/fanout/topic routing and duplicate-binding protection.
+- Added queue pull delivery, consumer polling, deterministic round-robin, prefetch accounting, acknowledgements, and reject/requeue.
+- Added `moon run cmd/moonmq` and `moon run examples/embedded` with UTF-8 output and no external service.
+- Verification: `moon check`, `moon test` — 20 tests passed; both demos ran successfully.
+
 ## Record format for future entries
 
 Each milestone entry will include its date, Issue/PR links, user-visible behavior, verification commands, compatibility limitations, and commit summary.

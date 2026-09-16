@@ -30,10 +30,11 @@ moon test
 moon fmt --check
 ```
 
-The self-contained demo will be available as:
+The self-contained demo is available as:
 
 ```text
 moon run cmd/moonmq
+moon run examples/embedded
 ```
 
 See [`docs/protocol-profile.md`](docs/protocol-profile.md) for the compatibility boundary and [`docs/superpowers/specs/2026-09-16-moonmq-design.md`](docs/superpowers/specs/2026-09-16-moonmq-design.md) for the design rationale.
