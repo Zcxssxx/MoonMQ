@@ -61,9 +61,7 @@ test "frame kinds enforce channel and payload invariants" {
 test "method frames require class and method identifiers" {
   let malformed = Frame::new(FrameKind::FrameMethod, UInt16(1), b"\x01")
   assert_true(encode_frame(malformed) is Err(_))
-  assert_true(
-    decode_frame(b"\x01\x00\x01\x00\x00\x00\x01\x01\xCE") is Err(_),
-  )
+  assert_true(decode_frame(b"\x01\x00\x01\x00\x00\x00\x01\x01\xCE") is Err(_))
 }
 
 ///|
