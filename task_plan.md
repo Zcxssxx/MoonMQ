@@ -55,7 +55,7 @@ Phase 6: Core Profile expansion
 
 - [x] Add AMQP field-table and long-string codecs with bounded readers
 - [x] Add connection, channel, exchange, queue, and Basic lifecycle method variants
-- [ ] Add Basic content properties and content-header/body sequencing
+- [x] Add Basic content properties and content-header/body sequencing
 - [ ] Add a portable session state machine that translates protocol events to Broker actions
 - [ ] Add native TCP adapter behind the session interface where the current async runtime supports it
 - [ ] Add loopback/session tests and update the interoperability matrix

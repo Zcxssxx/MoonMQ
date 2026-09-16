@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn decode_content_header(Bytes) -> Result[ContentHeader, AmqpError]
+
 pub fn decode_field_table(Bytes) -> Result[FieldTable, AmqpError]
 
 pub fn decode_frame(Bytes) -> Result[Frame, AmqpError]
@@ -25,6 +27,8 @@ pub fn decode_u16(Bytes) -> Result[UInt16, AmqpError]
 pub fn decode_u32(Bytes) -> Result[UInt, AmqpError]
 
 pub fn decode_u64(Bytes) -> Result[UInt64, AmqpError]
+
+pub fn encode_content_header(ContentHeader) -> Result[Bytes, AmqpError]
 
 pub fn encode_field_table(FieldTable) -> Result[Bytes, AmqpError]
 
@@ -64,7 +68,86 @@ pub enum AmqpError {
   InvalidDeliveryTag
   InvalidFieldValue
   FieldTableTooLarge
+  InvalidContentClass
+  InvalidContentWeight
+  InvalidPropertyFlags
+  ContentBodyTooLarge
+  ContentSizeMismatch
 }
+
+pub struct BasicProperties {
+  content_type : String?
+  content_encoding : String?
+  headers : FieldTable?
+  delivery_mode : Byte?
+  priority : Byte?
+  correlation_id : String?
+  reply_to : String?
+  expiration : String?
+  message_id : String?
+  timestamp : UInt64?
+  message_type : String?
+  user_id : String?
+  app_id : String?
+  cluster_id : String?
+} derive(Eq, @debug.Debug)
+pub fn BasicProperties::app_id(Self) -> String?
+pub fn BasicProperties::cluster_id(Self) -> String?
+pub fn BasicProperties::content_encoding(Self) -> String?
+pub fn BasicProperties::content_type(Self) -> String?
+pub fn BasicProperties::correlation_id(Self) -> String?
+pub fn BasicProperties::delivery_mode(Self) -> Byte?
+pub fn BasicProperties::expiration(Self) -> String?
+pub fn BasicProperties::headers(Self) -> FieldTable?
+pub fn BasicProperties::message_id(Self) -> String?
+pub fn BasicProperties::message_type(Self) -> String?
+pub fn BasicProperties::new() -> Self
+pub fn BasicProperties::priority(Self) -> Byte?
+pub fn BasicProperties::reply_to(Self) -> String?
+pub fn BasicProperties::timestamp(Self) -> UInt64?
+pub fn BasicProperties::user_id(Self) -> String?
+pub fn BasicProperties::with_app_id(Self, String) -> Self
+pub fn BasicProperties::with_cluster_id(Self, String) -> Self
+pub fn BasicProperties::with_content_encoding(Self, String) -> Self
+pub fn BasicProperties::with_content_type(Self, String) -> Self
+pub fn BasicProperties::with_correlation_id(Self, String) -> Self
+pub fn BasicProperties::with_delivery_mode(Self, Byte) -> Self
+pub fn BasicProperties::with_expiration(Self, String) -> Self
+pub fn BasicProperties::with_headers(Self, FieldTable) -> Self
+pub fn BasicProperties::with_message_id(Self, String) -> Self
+pub fn BasicProperties::with_message_type(Self, String) -> Self
+pub fn BasicProperties::with_priority(Self, Byte) -> Self
+pub fn BasicProperties::with_reply_to(Self, String) -> Self
+pub fn BasicProperties::with_timestamp(Self, UInt64) -> Self
+pub fn BasicProperties::with_user_id(Self, String) -> Self
+
+pub struct ContentAssembler {
+  header : ContentHeader
+  max_body_size : Int
+  body : Array[Byte]
+}
+pub fn ContentAssembler::finish(Self) -> Result[ContentMessage, AmqpError]
+pub fn ContentAssembler::new(ContentHeader, Int) -> Self
+pub fn ContentAssembler::push_body(Self, Bytes) -> Result[Unit, AmqpError]
+
+pub struct ContentHeader {
+  class_id : UInt16
+  weight : UInt16
+  body_size : UInt64
+  properties : BasicProperties
+} derive(Eq, @debug.Debug)
+pub fn ContentHeader::body_size(Self) -> UInt64
+pub fn ContentHeader::class_id(Self) -> UInt16
+pub fn ContentHeader::new(class_id~ : UInt16, weight~ : UInt16, body_size~ : UInt64, properties~ : BasicProperties) -> Self
+pub fn ContentHeader::properties(Self) -> BasicProperties
+pub fn ContentHeader::weight(Self) -> UInt16
+
+pub struct ContentMessage {
+  header : ContentHeader
+  body : Bytes
+} derive(Eq, @debug.Debug)
+pub fn ContentMessage::body(Self) -> Bytes
+pub fn ContentMessage::header(Self) -> ContentHeader
 
 pub struct FieldTable {
   entries : Array[(String, FieldValue)]

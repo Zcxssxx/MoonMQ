@@ -68,4 +68,12 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - Added bounded long-string helpers for arbitrary challenge/response bytes and exact method readers that reject truncation, trailing bytes, and reserved flag bits.
 - Added red-first golden-wire and round-trip tests for connection start/start-ok/tune, exchange declare, queue/consumer flows, and long strings.
 - Verification: `moon check --target all`, `moon test --target all` — 45 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
-- Commits: `e3a3020`, `45b12b3`, and the implementation commit for this milestone.
+- Commits: `e3a3020`, `45b12b3`, and `fcade5b`.
+
+## 2026-09-16 — Core Profile expansion: content sequencing ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12))
+
+- Added all AMQP Basic content properties with fluent optional-value construction and property-flag encoding in wire order.
+- Added Basic content-header encode/decode and a bounded assembler that joins body frames only when the declared body size is complete.
+- Added red-first tests for zero-body headers, property flags, split bodies, body overrun/underrun, unsupported classes, and malformed flags.
+- Verification: `moon check --target all`, `moon test --target all` — 49 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
+- Commit: pending for this milestone.

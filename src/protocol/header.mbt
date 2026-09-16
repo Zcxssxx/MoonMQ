@@ -15,6 +15,11 @@ pub enum AmqpError {
   InvalidDeliveryTag
   InvalidFieldValue
   FieldTableTooLarge
+  InvalidContentClass
+  InvalidContentWeight
+  InvalidPropertyFlags
+  ContentBodyTooLarge
+  ContentSizeMismatch
 }
 
 ///|
