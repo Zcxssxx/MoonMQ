@@ -1,0 +1,27 @@
+name: Feature milestone
+description: Track a user-visible MoonMQ milestone.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: User outcome
+      description: What should a MoonMQ user be able to do?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: State the Core Profile behavior and explicit exclusions.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification plan
+      description: List the MoonBit tests and demo commands that will prove this milestone.
+    validations:
+      required: true
