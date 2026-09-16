@@ -18,7 +18,7 @@ fn main {
       return
     }
   }
-  ignore(broker.publish("", queue, b"local job"))
+  ignore(broker.publish("", queue, b"local job \xE5\xB5\x8C\xE5\x85\xa5"))
   match broker.get(queue) {
     Ok(Some(delivery)) => {
       println("embedded message: \{bytes_text(delivery.body())}")

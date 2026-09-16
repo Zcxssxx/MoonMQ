@@ -18,7 +18,10 @@ fn main {
       return
     }
   }
-  match broker.publish("", queue, b"hello from an embedded broker") {
+  match
+    broker.publish(
+      "", queue, b"hello from an embedded broker \xE5\xB5\x8C\xE5\x85\xa5",
+    ) {
     Ok(count) =>
       println("published to \{count} queue(s) through the default exchange")
     Err(_) => {
