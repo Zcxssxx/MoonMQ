@@ -2,6 +2,8 @@
 
 MoonMQ is an open-source MoonBit implementation of a focused AMQP 0-9-1 protocol core and a deterministic, in-memory embedded broker.
 
+一个 MoonBit 原生 AMQP 0-9-1 Core Profile 与嵌入式 Broker。
+
 It targets a practical gap in the MoonBit ecosystem: the existing MQTT package provides MQTT packet codecs, while MoonMQ explores AMQP-compatible interoperability and a broker that can run inside a local MoonBit program without RabbitMQ or another service.
 
 ## Status
