@@ -330,6 +330,10 @@ pub fn Broker::ack(self : Broker, tag : UInt64) -> Result[Unit, BrokerError] {
     Err(error) => return Err(error)
   }
   self.decrement_consumer(in_flight.queue, in_flight.consumer_tag)
+  let queue_index = self.find_queue(in_flight.queue)
+  if queue_index >= 0 {
+    self.pump_queue(queue_index)
+  }
   Ok(())
 }
 
@@ -358,8 +362,59 @@ pub fn Broker::reject(
         messages.push(item)
       }
       self.queues[queue_index].messages = messages
-      self.pump_queue(queue_index)
     }
   }
+  let queue_index = self.find_queue(in_flight.queue)
+  if queue_index >= 0 {
+    self.pump_queue(queue_index)
+  }
+  Ok(())
+}
+
+///|
+/// Cancel a consumer and requeue all of its unacknowledged deliveries.
+pub fn Broker::cancel_consumer(
+  self : Broker,
+  handle : ConsumerHandle,
+) -> Result[Unit, BrokerError] {
+  let queue_index = self.find_queue(handle.queue)
+  if queue_index < 0 {
+    return Err(UnknownQueue)
+  }
+  let mut consumer_index = -1
+  for index = 0
+      index < self.queues[queue_index].consumers.length()
+      index = index + 1 {
+    if self.queues[queue_index].consumers[index].tag == handle.tag {
+      consumer_index = index
+      break
+    }
+  }
+  if consumer_index < 0 {
+    return Err(UnknownConsumer)
+  }
+  let recovered : Array[Message] = []
+  let mut in_flight_index = 0
+  while in_flight_index < self.in_flight.length() {
+    let item = self.in_flight[in_flight_index]
+    if item.queue == handle.queue && item.consumer_tag == handle.tag {
+      recovered.push({
+        body: item.message.body(),
+        routing_key: item.message.routing_key(),
+        redelivered: true,
+      })
+      ignore(self.in_flight.remove(in_flight_index))
+    } else {
+      in_flight_index += 1
+    }
+  }
+  ignore(self.queues[queue_index].consumers.remove(consumer_index))
+  if recovered.length() > 0 {
+    for item in self.queues[queue_index].messages {
+      recovered.push(item)
+    }
+    self.queues[queue_index].messages = recovered
+  }
+  self.pump_queue(queue_index)
   Ok(())
 }
