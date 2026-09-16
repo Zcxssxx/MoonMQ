@@ -39,6 +39,12 @@ test "short strings carry a UTF-8 byte length" {
 }
 
 ///|
+test "short strings reject NUL bytes" {
+  assert_true(encode_short_string("a\x00b") is Err(_))
+  assert_true(decode_short_string(b"\x03a\x00b") is Err(_))
+}
+
+///|
 test "primitive decoders reject truncated input" {
   assert_true(decode_u16(b"\x01") is Err(_))
   assert_true(decode_u32(b"\x01\x02\x03") is Err(_))

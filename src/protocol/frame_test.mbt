@@ -40,3 +40,33 @@ test "frame payload respects frame-max overhead" {
   let frame = Frame::new(FrameKind::FrameBody, UInt16(1), too_large)
   assert_true(encode_frame(frame) is Err(_))
 }
+
+///|
+test "frame kinds enforce channel and payload invariants" {
+  assert_true(
+    encode_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(1), b"")) is Err(_),
+  )
+  assert_true(
+    encode_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(0), b"x")) is Err(_),
+  )
+  assert_true(
+    encode_frame(Frame::new(FrameKind::FrameBody, UInt16(0), b"x")) is Err(_),
+  )
+  assert_true(
+    decode_frame(b"\x08\x00\x01\x00\x00\x00\x00\xCE") is Err(_),
+  )
+}
+
+///|
+test "caller can use a negotiated lower frame-max" {
+  let frame = Frame::new(FrameKind::FrameBody, UInt16(1), b"1234")
+  match encode_frame_with_max(frame, 11) {
+    Ok(_) => fail("frame should exceed the negotiated limit")
+    Err(_) => ()
+  }
+  let encoded = match encode_frame_with_max(frame, 12) {
+    Ok(bytes) => bytes
+    Err(_) => fail("frame should fit the negotiated limit")
+  }
+  assert_true(decode_frame_with_max(encoded, 12) is Ok(_))
+}
