@@ -62,3 +62,34 @@ test "basic.ack and basic.reject decode delivery tags and flags" {
     _ => fail("basic.reject decoding unexpectedly failed")
   }
 }
+
+///|
+test "basic.publish rejects nonzero ticket and invalid exchange name" {
+  assert_true(
+    encode_method(
+      Method::BasicPublish(
+        ticket=UInt16(1),
+        exchange="events",
+        routing_key="hello",
+        mandatory=false,
+        immediate=false,
+      ),
+    )
+    is Err(_),
+  )
+  assert_true(
+    encode_method(
+      Method::BasicPublish(
+        ticket=UInt16(0),
+        exchange="bad/name",
+        routing_key="hello",
+        mandatory=false,
+        immediate=false,
+      ),
+    )
+    is Err(_),
+  )
+  assert_true(
+    decode_method(b"\x00\x3C\x00\x28\x00\x01\x06events\x05hello\x00") is Err(_),
+  )
+}

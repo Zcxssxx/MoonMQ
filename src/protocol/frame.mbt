@@ -37,7 +37,40 @@ pub fn Frame::payload(self : Frame) -> Bytes {
 
 ///|
 // AMQP frame-max includes the seven-byte frame header and one-byte terminator.
-const DEFAULT_MAX_FRAME_PAYLOAD : Int = 131064
+const DEFAULT_MAX_FRAME_SIZE : Int = 131072
+
+///|
+fn effective_max_frame_size(max_frame_size : Int) -> Int {
+  if max_frame_size == 0 {
+    DEFAULT_MAX_FRAME_SIZE
+  } else {
+    max_frame_size
+  }
+}
+
+///|
+fn validate_frame_shape(frame : Frame) -> Result[Unit, AmqpError] {
+  match frame.kind {
+    FrameHeartbeat =>
+      if frame.channel != UInt16(0) || frame.payload.length() != 0 {
+        Err(InvalidFrameShape)
+      } else {
+        Ok(())
+      }
+    FrameHeader | FrameBody =>
+      if frame.channel == UInt16(0) {
+        Err(InvalidFrameShape)
+      } else {
+        Ok(())
+      }
+    FrameMethod =>
+      if frame.payload.length() < 4 {
+        Err(InvalidFrameShape)
+      } else {
+        Ok(())
+      }
+  }
+}
 
 ///|
 fn frame_kind_byte(kind : FrameKind) -> Byte {
@@ -62,9 +95,20 @@ fn frame_kind_from_byte(value : Byte) -> Result[FrameKind, AmqpError] {
 
 ///|
 /// Encode one complete AMQP frame, including its `0xCE` terminator.
-pub fn encode_frame(frame : Frame) -> Result[Bytes, AmqpError] {
+pub fn encode_frame_with_max(
+  frame : Frame,
+  max_frame_size : Int,
+) -> Result[Bytes, AmqpError] {
+  match validate_frame_shape(frame) {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
+  let limit = effective_max_frame_size(max_frame_size)
+  if limit < 8 {
+    return Err(FrameTooLarge)
+  }
   let payload_size = frame.payload.length()
-  if payload_size > DEFAULT_MAX_FRAME_PAYLOAD {
+  if payload_size > limit - 8 {
     return Err(FrameTooLarge)
   }
   let channel = encode_u16(frame.channel)
@@ -85,8 +129,16 @@ pub fn encode_frame(frame : Frame) -> Result[Bytes, AmqpError] {
 }
 
 ///|
+pub fn encode_frame(frame : Frame) -> Result[Bytes, AmqpError] {
+  encode_frame_with_max(frame, DEFAULT_MAX_FRAME_SIZE)
+}
+
+///|
 /// Decode exactly one complete AMQP frame.
-pub fn decode_frame(input : Bytes) -> Result[Frame, AmqpError] {
+pub fn decode_frame_with_max(
+  input : Bytes,
+  max_frame_size : Int,
+) -> Result[Frame, AmqpError] {
   if input.length() < 8 {
     return Err(TruncatedInput)
   }
@@ -102,7 +154,8 @@ pub fn decode_frame(input : Bytes) -> Result[Frame, AmqpError] {
     Ok(value) => value.reinterpret_as_int()
     Err(error) => return Err(error)
   }
-  if size < 0 || size > DEFAULT_MAX_FRAME_PAYLOAD {
+  let limit = effective_max_frame_size(max_frame_size)
+  if limit < 8 || size < 0 || size > limit - 8 {
     return Err(FrameTooLarge)
   }
   let total_size = 8 + size
@@ -112,5 +165,14 @@ pub fn decode_frame(input : Bytes) -> Result[Frame, AmqpError] {
   if input[total_size - 1] != b'\xCE' {
     return Err(InvalidFrameTerminator)
   }
-  Ok(Frame::new(kind, channel, input[7:7 + size].to_owned()))
+  let frame = Frame::new(kind, channel, input[7:7 + size].to_owned())
+  match validate_frame_shape(frame) {
+    Ok(_) => Ok(frame)
+    Err(error) => Err(error)
+  }
+}
+
+///|
+pub fn decode_frame(input : Bytes) -> Result[Frame, AmqpError] {
+  decode_frame_with_max(input, DEFAULT_MAX_FRAME_SIZE)
 }

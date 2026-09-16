@@ -15,10 +15,37 @@ fn unwrap_short_string(value : String) -> Result[Bytes, AmqpError] {
 }
 
 ///|
+fn valid_exchange_name(value : String) -> Bool {
+  let encoded = @utf8.encode(value[:])
+  if encoded.length() > 127 {
+    return false
+  }
+  for byte in encoded {
+    let code = byte.to_int()
+    if !((code >= 0x30 && code <= 0x39) ||
+      (code >= 0x41 && code <= 0x5A) ||
+      (code >= 0x61 && code <= 0x7A) ||
+      code == 0x2D ||
+      code == 0x2E ||
+      code == 0x5F ||
+      code == 0x3A) {
+      return false
+    }
+  }
+  true
+}
+
+///|
 /// Encode a typed method payload, excluding the enclosing frame header.
 pub fn encode_method(value : Method) -> Result[Bytes, AmqpError] {
   match value {
     BasicPublish(ticket~, exchange~, routing_key~, mandatory~, immediate~) => {
+      if ticket != UInt16(0) {
+        return Err(UnsupportedMethod)
+      }
+      if !valid_exchange_name(exchange) {
+        return Err(InvalidExchangeName)
+      }
       let exchange = match unwrap_short_string(exchange) {
         Ok(bytes) => bytes
         Err(error) => return Err(error)
@@ -118,6 +145,12 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
     let (routing_key, offset) = match read_short_string_at(input, offset) {
       Ok(value) => value
       Err(error) => return Err(error)
+    }
+    if ticket != UInt16(0) {
+      return Err(UnsupportedMethod)
+    }
+    if !valid_exchange_name(exchange) {
+      return Err(InvalidExchangeName)
     }
     if offset >= input.length() {
       return Err(TruncatedInput)

@@ -19,13 +19,21 @@
 
 ### Phase 2: Planning & Structure
 
-- **Status:** in_progress
+- **Status:** complete
 - Actions taken:
   - Chosen architecture: pure protocol/core plus native TCP adapter.
   - Defined the Core Profile and non-goals for the deadline.
+  - Created the public `Zcxssxx/MoonMQ` repository history without replacing its existing initial README commit.
+  - Created Issues #1–#6 for scaffold, protocol, Broker, transport and release work.
 - Files created/modified:
   - `docs/superpowers/specs/2026-09-16-moonmq-design.md` (planned)
   - `docs/superpowers/plans/2026-09-16-moonmq-implementation-plan.md` (planned)
+
+### Phase 3: Implementation
+
+- **Status:** in_progress
+- Protocol Core Profile and embedded Broker slices are implemented on feature branches.
+- Native TCP transport remains the next major implementation slice.
 
 ## Test Results
 
@@ -33,7 +41,10 @@
 |------|-------|----------|--------|--------|
 | MoonBit toolchain version | `moon version --all` | Current stable toolchain | `moon 0.1.20260915`, `moonc 0.10.13` | ✓ |
 | GitHub identity | `gh api user --jq .login` | `Zcxssxx` | `Zcxssxx` | ✓ |
-| Baseline project tests | `moon check`, `moon test` | No project yet | Not run until scaffolding | pending |
+| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 22 passed, 0 failed | ✓ |
+| Protocol-plus-Broker suite | `moon check`, `moon test` | Clean check, all tests pass | 25 passed, 0 failed | ✓ |
+| Embedded CLI demo | `moon run cmd/moonmq` | Publish, consume, ack locally | Passed with UTF-8 payload | ✓ |
+| Embedded example | `moon run examples/embedded` | Publish and consume locally | Passed with UTF-8 payload | ✓ |
 
 ## Error Log
 
@@ -47,8 +58,8 @@
 
 | Question | Answer |
 |----------|--------|
-| Where am I? | Phase 2, planning and structure |
+| Where am I? | Phase 3, protocol and embedded Broker implementation |
 | Where am I going? | A tested MoonBit AMQP Core Profile, embedded Broker, native transport and public delivery records |
 | What's the goal? | Complete MoonMQ for the September Hackathon acceptance boundary |
 | What have I learned? | See `findings.md`; direct ecosystem overlap is low but scope risk is high |
-| What have I done? | Verified account/toolchain, researched the rules/ecosystem and created persistent planning records |
+| What have I done? | Verified account/toolchain, created public Issues, implemented and tested protocol/Broker slices, and retained incremental commits |

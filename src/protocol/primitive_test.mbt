@@ -14,6 +14,11 @@ test "protocol header rejects unsupported revision" {
 }
 
 ///|
+test "protocol header reports truncation separately" {
+  assert_true(decode_protocol_header(b"AMQP\x00") is Err(TruncatedInput))
+}
+
+///|
 test "unsigned integers use network byte order" {
   assert_eq(encode_u16(UInt16(0x1234)), b"\x12\x34")
   assert_eq(encode_u32(0x12345678U), b"\x12\x34\x56\x78")
@@ -36,6 +41,12 @@ test "unsigned integers use network byte order" {
 test "short strings carry a UTF-8 byte length" {
   assert_true(encode_short_string("hello") is Ok(b"\x05hello"))
   assert_true(decode_short_string(b"\x05hello") is Ok("hello"))
+}
+
+///|
+test "short strings reject NUL bytes" {
+  assert_true(encode_short_string("a\u0000b") is Err(_))
+  assert_true(decode_short_string(b"\x03a\x00b") is Err(_))
 }
 
 ///|

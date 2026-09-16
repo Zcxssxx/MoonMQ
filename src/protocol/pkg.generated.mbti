@@ -1,0 +1,83 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Zcxssxx/moonmq/src/protocol"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn decode_frame(Bytes) -> Result[Frame, AmqpError]
+
+pub fn decode_frame_with_max(Bytes, Int) -> Result[Frame, AmqpError]
+
+pub fn decode_method(Bytes) -> Result[Method, AmqpError]
+
+pub fn decode_protocol_header(Bytes) -> Result[Unit, AmqpError]
+
+pub fn decode_short_string(Bytes) -> Result[String, AmqpError]
+
+pub fn decode_u16(Bytes) -> Result[UInt16, AmqpError]
+
+pub fn decode_u32(Bytes) -> Result[UInt, AmqpError]
+
+pub fn decode_u64(Bytes) -> Result[UInt64, AmqpError]
+
+pub fn encode_frame(Frame) -> Result[Bytes, AmqpError]
+
+pub fn encode_frame_with_max(Frame, Int) -> Result[Bytes, AmqpError]
+
+pub fn encode_method(Method) -> Result[Bytes, AmqpError]
+
+pub fn encode_protocol_header() -> Bytes
+
+pub fn encode_short_string(String) -> Result[Bytes, AmqpError]
+
+pub fn encode_u16(UInt16) -> Bytes
+
+pub fn encode_u32(UInt) -> Bytes
+
+pub fn encode_u64(UInt64) -> Bytes
+
+// Errors
+
+// Types and methods
+pub enum AmqpError {
+  InvalidProtocolHeader
+  TruncatedInput
+  ValueTooLong
+  InvalidUtf8
+  InvalidShortString
+  InvalidFrameTerminator
+  InvalidFrameShape
+  UnsupportedFrameType
+  FrameTooLarge
+  UnsupportedMethod
+  InvalidExchangeName
+}
+
+pub struct Frame {
+  kind : FrameKind
+  channel : UInt16
+  payload : Bytes
+}
+pub fn Frame::channel(Self) -> UInt16
+pub fn Frame::kind(Self) -> FrameKind
+pub fn Frame::new(FrameKind, UInt16, Bytes) -> Self
+pub fn Frame::payload(Self) -> Bytes
+
+pub(all) enum FrameKind {
+  FrameMethod
+  FrameHeader
+  FrameBody
+  FrameHeartbeat
+} derive(Eq, @debug.Debug)
+
+pub(all) enum Method {
+  BasicPublish(ticket~ : UInt16, exchange~ : String, routing_key~ : String, mandatory~ : Bool, immediate~ : Bool)
+  BasicAck(delivery_tag~ : UInt64, multiple~ : Bool)
+  BasicReject(delivery_tag~ : UInt64, requeue~ : Bool)
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

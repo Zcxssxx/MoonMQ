@@ -5,10 +5,13 @@ pub enum AmqpError {
   TruncatedInput
   ValueTooLong
   InvalidUtf8
+  InvalidShortString
   InvalidFrameTerminator
+  InvalidFrameShape
   UnsupportedFrameType
   FrameTooLarge
   UnsupportedMethod
+  InvalidExchangeName
 }
 
 ///|
@@ -20,7 +23,9 @@ pub fn encode_protocol_header() -> Bytes {
 ///|
 /// Validate a fixed AMQP 0-9-1 protocol header.
 pub fn decode_protocol_header(input : Bytes) -> Result[Unit, AmqpError] {
-  if input == encode_protocol_header() {
+  if input.length() < 8 {
+    Err(TruncatedInput)
+  } else if input == encode_protocol_header() {
     Ok(())
   } else {
     Err(InvalidProtocolHeader)
