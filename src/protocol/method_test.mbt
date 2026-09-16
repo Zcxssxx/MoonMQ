@@ -93,3 +93,27 @@ test "basic.publish rejects nonzero ticket and invalid exchange name" {
     decode_method(b"\x00\x3C\x00\x28\x00\x01\x06events\x05hello\x00") is Err(_),
   )
 }
+
+///|
+test "delivery tag zero is restricted to multiple acknowledgements" {
+  assert_true(
+    encode_method(Method::BasicAck(delivery_tag=UInt64(0), multiple=false))
+    is Err(_),
+  )
+  assert_true(
+    encode_method(Method::BasicAck(delivery_tag=UInt64(0), multiple=true))
+    is Ok(_),
+  )
+  assert_true(
+    encode_method(Method::BasicReject(delivery_tag=UInt64(0), requeue=false))
+    is Err(_),
+  )
+  assert_true(
+    decode_method(b"\x00\x3C\x00\x50\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+    is Err(_),
+  )
+  assert_true(
+    decode_method(b"\x00\x3C\x00\x5A\x00\x00\x00\x00\x00\x00\x00\x00\x00")
+    is Err(_),
+  )
+}

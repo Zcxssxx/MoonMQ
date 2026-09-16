@@ -53,6 +53,7 @@ pub enum AmqpError {
   FrameTooLarge
   UnsupportedMethod
   InvalidExchangeName
+  InvalidDeliveryTag
 }
 
 pub struct Frame {
