@@ -2,18 +2,19 @@
 
 This document is the compatibility contract for the first release. It is narrower than the entire RabbitMQ feature set and will be expanded only through a recorded design change.
 
-## Planned supported surface
+## Current implemented surface
 
 | Area | Methods / behavior |
 | --- | --- |
-| Framing | protocol header, method, content-header, body, heartbeat frames; frame terminator and size validation |
-| Connection | `start`, `start-ok`, `tune`, `tune-ok`, `open`, `open-ok`, `close`, `close-ok` |
-| Channel | `open`, `open-ok`, `close`, `close-ok` |
-| Exchange | declare/delete for direct, fanout, and topic exchanges |
-| Queue | declare/delete/bind/unbind; default exchange; generated queue names |
-| Basic | qos, publish, consume, cancel, deliver, get, get-ok, get-empty, ack, reject |
-| Broker | in-memory topology, deterministic routing, push/pull delivery, prefetch, ack/requeue |
-| Transport | portable core first; native TCP adapter is isolated and documented by platform |
+| Framing | protocol header, method/header/body/heartbeat envelopes, `0xCE` terminator, exact-size and bounded frame validation |
+| Primitives | network-byte-order `u16`/`u32`/`u64`, UTF-8 short strings, exact-width and malformed-input checks |
+| Methods | typed `basic.publish`, `basic.ack`, and `basic.reject` payloads with field validation |
+| Broker | in-memory default/direct/fanout/topic routing, named/generated queues, push/pull delivery, prefetch, ack/reject/requeue, cancellation cleanup |
+| Transport | no socket dependency in the current release; embedded use is the supported execution path |
+
+## Deferred profile expansion
+
+Connection/channel handshake, exchange/queue method frames, content-header properties, multi-frame content assembly, and the native TCP/session adapter are planned follow-up slices. They are intentionally not claimed as implemented interoperability in this release.
 
 ## Explicit non-goals
 

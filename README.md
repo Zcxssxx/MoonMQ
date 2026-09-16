@@ -10,13 +10,15 @@ It targets a practical gap in the MoonBit ecosystem: the existing MQTT package p
 
 This repository is in active development for the 2026 MoonBit September Hackathon. The first release is intentionally a Core Profile, not a claim of complete RabbitMQ compatibility.
 
-Planned first-release capabilities:
+Current milestone:
 
-- bounded AMQP protocol-header, frame, method, content-header, and body codecs;
-- connection/channel handshake and a documented AMQP 0-9-1 method subset;
-- pure in-memory direct, fanout, and topic routing;
-- pull and push consumption with acknowledgements, reject/requeue, and prefetch;
-- an embedded local demo, with the native TCP adapter kept separate from the portable core.
+- bounded AMQP protocol-header, frame, and typed method codecs;
+- a documented Core Profile centered on `basic.publish`, `basic.ack`, and `basic.reject`;
+- pure in-memory default, direct, fanout, and topic routing;
+- pull and push consumption with acknowledgements, reject/requeue, prefetch, and cancellation cleanup;
+- an embedded local demo that runs without RabbitMQ or any other service.
+
+Next milestone: a native TCP/session adapter isolated from the portable protocol and Broker packages.
 
 Out of scope for the first release: AMQP 1.0, persistence/recovery, clustering, replication, transactions, publisher confirms, TLS, authentication/ACL, and the full RabbitMQ extension surface.
 
@@ -30,14 +32,14 @@ moon test
 moon fmt --check
 ```
 
-The self-contained demo is available as:
+The self-contained demos are available as:
 
 ```text
 moon run cmd/moonmq
 moon run examples/embedded
 ```
 
-See [`docs/protocol-profile.md`](docs/protocol-profile.md) for the compatibility boundary and [`docs/superpowers/specs/2026-09-16-moonmq-design.md`](docs/superpowers/specs/2026-09-16-moonmq-design.md) for the design rationale.
+See [`docs/protocol-profile.md`](docs/protocol-profile.md) for the compatibility boundary, [`docs/interop.md`](docs/interop.md) for the current interoperability policy, and [`docs/superpowers/specs/2026-09-16-moonmq-design.md`](docs/superpowers/specs/2026-09-16-moonmq-design.md) for the design rationale.
 
 ## Project records
 
