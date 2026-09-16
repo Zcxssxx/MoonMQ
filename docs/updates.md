@@ -91,4 +91,4 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - Fixed the review findings around per-channel content interleaving, channel/session delivery ownership, prefetch continuation, named exchange metadata, Basic properties, mandatory `basic.return`, tune-bound frame output, queue statistics, unsupported option handling, and protocol frame-shape validation.
 - Added a native-only `NativeConnection` byte-stream adapter, `moonbitlang/async@0.20.2` TCP listener, native server executable, fragmented-input tests, and a real local TCP handshake test.
 - Verification: `moon check --target all`; `moon test --target all` — 65 tests passed on wasm, wasm-gc, and js, 68 passed on native; `moon build --target native cmd/moonmq-server`; embedded demos `moon run cmd/moonmq` and `moon run examples/embedded` passed; `moon fmt --check` and `git diff --check` completed.
-- Commit: pending for this hardening/native milestone.
+- Commit: `cc3a7f9` (`feat(transport): add native AMQP session adapter`).
