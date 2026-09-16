@@ -20,7 +20,7 @@ pub enum AmqpError {
   InvalidPropertyFlags
   ContentBodyTooLarge
   ContentSizeMismatch
-}
+} derive(Eq, @debug.Debug)
 
 ///|
 /// Encode the fixed AMQP 0-9-1 protocol header.

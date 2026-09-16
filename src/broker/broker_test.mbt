@@ -9,6 +9,7 @@ test "direct exchange routes exact keys and get returns a delivery" {
   match broker.get("audit") {
     Ok(Some(delivery)) => {
       assert_eq(delivery.body(), b"one")
+      assert_eq(delivery.exchange(), "events")
       assert_eq(delivery.routing_key(), "created")
       assert_true(!delivery.redelivered())
     }

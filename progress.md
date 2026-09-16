@@ -13,6 +13,8 @@
 - Verification for the method milestone: `moon check --target all`, `moon test --target all` — 45/45 passed on wasm, wasm-gc, js, and native.
 - Completed Phase 6 Task 3: Basic content properties, exact content-header encoding/decoding, and bounded multi-frame body assembly.
 - Verification for the content milestone: `moon check --target all`, `moon test --target all` — 49/49 passed on wasm, wasm-gc, js, and native.
+- Completed Phase 6 Task 4: portable session state machine over fake protocol frames, including handshake, channel lifecycle, Broker topology, content sequencing, pull/push delivery, cancellation, ack/reject, and heartbeat handling.
+- Verification for the session milestone: `moon check --target all`, `moon test --target all` — 55/55 passed on wasm, wasm-gc, js, and native.
 
 ### Phase 1: Requirements & Discovery
 

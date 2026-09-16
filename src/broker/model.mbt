@@ -10,18 +10,34 @@ pub(all) enum ExchangeKind {
 /// A message stored or delivered by the embedded broker.
 pub struct Message {
   body : Bytes
+  exchange : String
   routing_key : String
   redelivered : Bool
 } derive(Eq, @debug.Debug)
 
 ///|
 pub fn Message::new(body : Bytes, routing_key : String) -> Message {
-  { body, routing_key, redelivered: false, }
+  Message::new_with_exchange("", body, routing_key)
+}
+
+///|
+/// Create a message while preserving the exchange that accepted it.
+pub fn Message::new_with_exchange(
+  exchange : String,
+  body : Bytes,
+  routing_key : String,
+) -> Message {
+  { body, exchange, routing_key, redelivered: false, }
 }
 
 ///|
 pub fn Message::body(self : Message) -> Bytes {
   self.body
+}
+
+///|
+pub fn Message::exchange(self : Message) -> String {
+  self.exchange
 }
 
 ///|
@@ -61,6 +77,11 @@ pub fn Delivery::consumer_tag(self : Delivery) -> String {
 ///|
 pub fn Delivery::body(self : Delivery) -> Bytes {
   self.message.body()
+}
+
+///|
+pub fn Delivery::exchange(self : Delivery) -> String {
+  self.message.exchange()
 }
 
 ///|

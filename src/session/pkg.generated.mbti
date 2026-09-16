@@ -1,0 +1,59 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Zcxssxx/moonmq/src/session"
+
+import {
+  "Zcxssxx/moonmq/src/broker",
+  "Zcxssxx/moonmq/src/protocol",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+type ChannelState
+
+type PendingContent
+
+type PendingPublish
+
+pub struct Session {
+  mut state : SessionState
+  broker : @broker.Broker
+  channels : Array[ChannelState]
+  consumers : Array[SessionConsumer]
+  mut pending_publish : PendingPublish?
+  mut pending_content : PendingContent?
+}
+pub fn Session::new(@broker.Broker) -> Self
+pub fn Session::receive_frame(Self, @protocol.Frame) -> Result[Array[@protocol.Frame], SessionError]
+pub fn Session::receive_protocol_header(Self, Bytes) -> Result[Bytes, SessionError]
+pub fn Session::server_start_frame(Self) -> Result[@protocol.Frame, SessionError]
+pub fn Session::state(Self) -> SessionState
+
+type SessionConsumer
+
+pub enum SessionError {
+  InvalidState
+  InvalidChannel
+  InvalidFrameKind
+  MissingContent
+  PendingContent
+  UnsupportedOperation
+  ProtocolError(@protocol.AmqpError)
+  BrokerError(@broker.BrokerError)
+} derive(Eq, @debug.Debug)
+
+pub(all) enum SessionState {
+  AwaitProtocolHeader
+  AwaitStartOk
+  AwaitTuneOk
+  AwaitOpen
+  Open
+  Closed
+} derive(Eq, @debug.Debug)
+
+// Type aliases
+
+// Traits

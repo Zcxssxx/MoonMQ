@@ -77,3 +77,11 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - Added red-first tests for zero-body headers, property flags, split bodies, body overrun/underrun, unsupported classes, and malformed flags.
 - Verification: `moon check --target all`, `moon test --target all` — 49 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
 - Commit: pending for this milestone.
+
+## 2026-09-16 — Core Profile expansion: portable session ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12), [PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13))
+
+- Added a portable AMQP session state machine with protocol-header validation, connection handshake, channel lifecycle, topology declarations, publish/content sequencing, pull and push delivery, cancellation cleanup, acknowledgement/reject handling, and heartbeat acceptance.
+- Added red-first fake-frame tests for handshake, queue publish/get/ack, consumer delivery/cancel, invalid state, missing content, and unknown channels.
+- The session deliberately keeps native sockets out of the portable package. Deletion, unbind, multiple acknowledgements, authentication, negotiated connection limits, and property-preserving Broker delivery remain explicit follow-ups.
+- Verification: `moon check --target all`, `moon test --target all` — 55 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
+- Commit: pending for this milestone.

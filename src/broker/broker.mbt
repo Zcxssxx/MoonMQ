@@ -207,7 +207,7 @@ pub fn Broker::publish(
     }
   }
   for queue in targets {
-    self.enqueue(queue, Message::new(body, routing_key))
+    self.enqueue(queue, Message::new_with_exchange(exchange, body, routing_key))
   }
   targets.length() |> Ok
 }
@@ -358,6 +358,7 @@ pub fn Broker::reject(
     if queue_index >= 0 {
       let message = {
         body: in_flight.message.body(),
+        exchange: in_flight.message.exchange(),
         routing_key: in_flight.message.routing_key(),
         redelivered: true,
       }
@@ -404,6 +405,7 @@ pub fn Broker::cancel_consumer(
     if item.queue == handle.queue && item.consumer_tag == handle.tag {
       recovered.push({
         body: item.message.body(),
+        exchange: item.message.exchange(),
         routing_key: item.message.routing_key(),
         redelivered: true,
       })

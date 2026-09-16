@@ -56,6 +56,7 @@ pub struct Delivery {
 } derive(Eq, @debug.Debug)
 pub fn Delivery::body(Self) -> Bytes
 pub fn Delivery::consumer_tag(Self) -> String
+pub fn Delivery::exchange(Self) -> String
 pub fn Delivery::queue(Self) -> String
 pub fn Delivery::redelivered(Self) -> Bool
 pub fn Delivery::routing_key(Self) -> String
@@ -73,11 +74,14 @@ type InFlight
 
 pub struct Message {
   body : Bytes
+  exchange : String
   routing_key : String
   redelivered : Bool
 } derive(Eq, @debug.Debug)
 pub fn Message::body(Self) -> Bytes
+pub fn Message::exchange(Self) -> String
 pub fn Message::new(Bytes, String) -> Self
+pub fn Message::new_with_exchange(String, Bytes, String) -> Self
 pub fn Message::redelivered(Self) -> Bool
 pub fn Message::routing_key(Self) -> String
 

@@ -18,3 +18,4 @@ All notable changes to MoonMQ are recorded here. The project is currently pre-1.
 - Added typed AMQP connection, channel, exchange, queue, and Basic lifecycle method codecs with exact-length readers and reserved-bit validation.
 - Added AMQP long-string helpers that preserve arbitrary bytes within a bounded 1 MiB host-side limit.
 - Added Basic content properties, content-header codecs, and bounded multi-frame body assembly with strict declared-size checks.
+- Added a portable session state machine that drives the tested AMQP handshake, channel, topology, publish/content, get, consume/deliver, cancel, acknowledgement, reject, and heartbeat paths against the embedded Broker.

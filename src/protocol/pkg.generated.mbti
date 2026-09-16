@@ -73,7 +73,7 @@ pub enum AmqpError {
   InvalidPropertyFlags
   ContentBodyTooLarge
   ContentSizeMismatch
-}
+} derive(Eq, @debug.Debug)
 
 pub struct BasicProperties {
   content_type : String?

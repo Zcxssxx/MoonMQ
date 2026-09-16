@@ -16,9 +16,10 @@ Current milestone:
 - a documented Core Profile covering connection/channel lifecycle, exchange/queue topology, and Basic delivery methods;
 - pure in-memory default, direct, fanout, and topic routing;
 - pull and push consumption with acknowledgements, reject/requeue, prefetch, and cancellation cleanup;
+- a portable session state machine covering the tested handshake, channel, topology, publish, get, consume, cancel, ack, and reject paths;
 - an embedded local demo that runs without RabbitMQ or any other service.
 
-Next milestones: a portable session boundary and a native TCP adapter isolated from the protocol and Broker packages.
+Next milestone: a native TCP adapter isolated from the protocol, session, and Broker packages.
 
 Out of scope for the first release: AMQP 1.0, persistence/recovery, clustering, replication, transactions, publisher confirms, TLS, authentication/ACL, and the full RabbitMQ extension surface.
 
