@@ -68,6 +68,59 @@ test "consumer polling honors prefetch one" {
 }
 
 ///|
+test "ack releases prefetch and pumps the next queued message" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("ack-pump"))
+  let consumer = assert_ok(broker.consume(queue, "worker", 1))
+  ignore(assert_ok(broker.publish("", queue, b"a")))
+  ignore(assert_ok(broker.publish("", queue, b"b")))
+  let first = match broker.poll(consumer) {
+    Ok(Some(delivery)) => delivery
+    _ => fail("expected first consumer delivery")
+  }
+  assert_ok(broker.ack(first.tag()))
+  match broker.poll(consumer) {
+    Ok(Some(delivery)) => assert_eq(delivery.body(), b"b")
+    _ => fail("ack should pump the next delivery")
+  }
+}
+
+///|
+test "consumer delivery is deterministic round robin" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("round-robin"))
+  let first = assert_ok(broker.consume(queue, "first", 0))
+  let second = assert_ok(broker.consume(queue, "second", 0))
+  ignore(assert_ok(broker.publish("", queue, b"one")))
+  ignore(assert_ok(broker.publish("", queue, b"two")))
+  match broker.poll(first) {
+    Ok(Some(delivery)) => assert_eq(delivery.body(), b"one")
+    _ => fail("first consumer should receive the first message")
+  }
+  match broker.poll(second) {
+    Ok(Some(delivery)) => assert_eq(delivery.body(), b"two")
+    _ => fail("second consumer should receive the second message")
+  }
+}
+
+///|
+test "cancel requeues unacknowledged push deliveries" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("cancel"))
+  let consumer = assert_ok(broker.consume(queue, "worker", 0))
+  ignore(assert_ok(broker.publish("", queue, b"cancel-me")))
+  assert_true(broker.poll(consumer) is Ok(Some(_)))
+  assert_ok(broker.cancel_consumer(consumer))
+  match broker.get(queue) {
+    Ok(Some(delivery)) => {
+      assert_eq(delivery.body(), b"cancel-me")
+      assert_true(delivery.redelivered())
+    }
+    _ => fail("cancel should requeue the in-flight message")
+  }
+}
+
+///|
 fn[T] assert_ok(result : Result[T, BrokerError]) -> T raise {
   match result {
     Ok(value) => value
