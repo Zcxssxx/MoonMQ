@@ -92,3 +92,9 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - Added a native-only `NativeConnection` byte-stream adapter, `moonbitlang/async@0.20.2` TCP listener, native server executable, fragmented-input tests, and a real local TCP handshake test.
 - Verification: `moon check --target all`; `moon test --target all` — 65 tests passed on wasm, wasm-gc, and js, 68 passed on native; `moon build --target native cmd/moonmq-server`; embedded demos `moon run cmd/moonmq` and `moon run examples/embedded` passed; `moon fmt --check` and `git diff --check` completed.
 - Commit: `cc3a7f9` (`feat(transport): add native AMQP session adapter`).
+
+## 2026-09-16 — CI dependency bootstrap follow-up ([PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13))
+
+- The first clean GitHub runner exposed that `moon check` could not resolve `moonbitlang/async@0.20.2` before the registry index was refreshed.
+- Added an explicit `moon update` step before CI checks; local cross-target verification remains green.
+- Commit: `8dc170b` (`ci: update MoonBit registry before checks`).
