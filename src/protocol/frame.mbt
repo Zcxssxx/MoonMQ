@@ -73,6 +73,30 @@ fn validate_frame_shape(frame : Frame) -> Result[Unit, AmqpError] {
 }
 
 ///|
+/// Validate an already-decoded frame before handing it to a session.
+pub fn validate_frame_with_max(
+  frame : Frame,
+  max_frame_size : Int,
+) -> Result[Unit, AmqpError] {
+  match validate_frame_shape(frame) {
+    Ok(_) => ()
+    Err(error) => return Err(error)
+  }
+  let limit = effective_max_frame_size(max_frame_size)
+  if limit < 8 || frame.payload.length() > limit - 8 {
+    Err(FrameTooLarge)
+  } else {
+    Ok(())
+  }
+}
+
+///|
+/// Validate an already-decoded frame using the default local bound.
+pub fn validate_frame(frame : Frame) -> Result[Unit, AmqpError] {
+  validate_frame_with_max(frame, DEFAULT_MAX_FRAME_SIZE)
+}
+
+///|
 fn frame_kind_byte(kind : FrameKind) -> Byte {
   match kind {
     FrameMethod => b'\x01'
@@ -101,7 +125,7 @@ pub fn encode_frame_with_max(
   frame : Frame,
   max_frame_size : Int,
 ) -> Result[Bytes, AmqpError] {
-  match validate_frame_shape(frame) {
+  match validate_frame_with_max(frame, max_frame_size) {
     Ok(_) => ()
     Err(error) => return Err(error)
   }
@@ -169,7 +193,7 @@ pub fn decode_frame_with_max(
     return Err(InvalidFrameTerminator)
   }
   let frame = Frame::new(kind, channel, input[7:7 + size].to_owned())
-  match validate_frame_shape(frame) {
+  match validate_frame_with_max(frame, max_frame_size) {
     Ok(_) => Ok(frame)
     Err(error) => Err(error)
   }

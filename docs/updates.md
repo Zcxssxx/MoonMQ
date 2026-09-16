@@ -54,3 +54,47 @@ This log is intentionally chronological. Each implementation milestone links its
 ## Record format for future entries
 
 Each milestone entry will include its date, Issue/PR links, user-visible behavior, verification commands, compatibility limitations, and commit summary.
+
+## 2026-09-16 — Core Profile expansion: field tables ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12))
+
+- Added deterministic, bounded AMQP field-table and field-array encoding/decoding with nested values, long strings, timestamps, and explicit malformed-value errors.
+- Added red-first tests for empty tables, nested round trips, unknown tags, truncation, and declared-size mismatches.
+- Verification: `moon check --target all`, `moon test --target all` — 39 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check` and `moon info` completed.
+- Commit: `e3a3020`.
+
+## 2026-09-16 — Core Profile expansion: method families ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12))
+
+- Added typed `connection`, `channel`, `exchange`, `queue`, and Basic lifecycle method variants, including topology arguments, delivery metadata, and response methods.
+- Added bounded long-string helpers for arbitrary challenge/response bytes and exact method readers that reject truncation, trailing bytes, and reserved flag bits.
+- Added red-first golden-wire and round-trip tests for connection start/start-ok/tune, exchange declare, queue/consumer flows, and long strings.
+- Verification: `moon check --target all`, `moon test --target all` — 45 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
+- Commits: `e3a3020`, `45b12b3`, and `fcade5b`.
+
+## 2026-09-16 — Core Profile expansion: content sequencing ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12))
+
+- Added all AMQP Basic content properties with fluent optional-value construction and property-flag encoding in wire order.
+- Added Basic content-header encode/decode and a bounded assembler that joins body frames only when the declared body size is complete.
+- Added red-first tests for zero-body headers, property flags, split bodies, body overrun/underrun, unsupported classes, and malformed flags.
+- Verification: `moon check --target all`, `moon test --target all` — 49 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
+- Commit: `4bd0c78` (content codec was included in the Core Profile expansion PR).
+
+## 2026-09-16 — Core Profile expansion: portable session ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12), [PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13))
+
+- Added a portable AMQP session state machine with protocol-header validation, connection handshake, channel lifecycle, topology declarations, publish/content sequencing, pull and push delivery, cancellation cleanup, acknowledgement/reject handling, and heartbeat acceptance.
+- Added red-first fake-frame tests for handshake, queue publish/get/ack, consumer delivery/cancel, invalid state, missing content, and unknown channels.
+- The session deliberately keeps native sockets out of the portable package. Deletion, unbind, multiple acknowledgements, and general authentication remain explicit follow-ups; the shipped local profile enforces `PLAIN`/`guest`/`guest` on `/`.
+- Verification before the hardening follow-up: `moon check --target all`, `moon test --target all` — 55 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check`, `moon info`, and `git diff --check` completed.
+- Commit: `928ab01` (`feat(session): translate AMQP frames to embedded Broker actions`).
+
+## 2026-09-16 — Core Profile hardening and native transport ([#5](https://github.com/Zcxssxx/MoonMQ/issues/5), [#12](https://github.com/Zcxssxx/MoonMQ/issues/12), [PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13))
+
+- Fixed the review findings around per-channel content interleaving, channel/session delivery ownership, prefetch continuation, named exchange metadata, Basic properties, mandatory `basic.return`, tune-bound frame output, queue statistics, unsupported option handling, and protocol frame-shape validation.
+- Added a native-only `NativeConnection` byte-stream adapter, `moonbitlang/async@0.20.2` TCP listener, native server executable, fragmented-input tests, and a real local TCP handshake test.
+- Verification: `moon check --target all`; `moon test --target all` — 65 tests passed on wasm, wasm-gc, and js, 68 passed on native; `moon build --target native cmd/moonmq-server`; embedded demos `moon run cmd/moonmq` and `moon run examples/embedded` passed; `moon fmt --check` and `git diff --check` completed.
+- Commit: `cc3a7f9` (`feat(transport): add native AMQP session adapter`).
+
+## 2026-09-16 — CI dependency bootstrap follow-up ([PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13))
+
+- The first clean GitHub runner exposed that `moon check` could not resolve `moonbitlang/async@0.20.2` before the registry index was refreshed.
+- Added an explicit `moon update` step before CI checks; local cross-target verification remains green.
+- Commit: `8dc170b` (`ci: update MoonBit registry before checks`).

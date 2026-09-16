@@ -2,6 +2,22 @@
 
 ## Session: 2026-09-16
 
+### Continuation: full Core Profile delivery
+
+- **Status:** Phase 6 planned and authorized by the user
+- Completed the portable-MVP audit and confirmed that the current implementation intentionally defers connection/channel methods, content sequencing, and native TCP.
+- Chosen continuation: expand the portable protocol first, then add a session layer and native adapter without changing the deterministic Broker core.
+- Created Issue #12 for the Core Profile/content-sequencing expansion; existing #5 remains the transport milestone.
+- Completed Phase 6 Task 1: bounded AMQP field tables; Task 2 (method families) is next.
+- Completed Phase 6 Task 2: typed connection/channel/exchange/queue/Basic method families, long strings, exact readers, flag validation, and golden-wire round trips.
+- Verification for the method milestone: `moon check --target all`, `moon test --target all` — 45/45 passed on wasm, wasm-gc, js, and native.
+- Completed Phase 6 Task 3: Basic content properties, exact content-header encoding/decoding, and bounded multi-frame body assembly.
+- Verification for the content milestone: `moon check --target all`, `moon test --target all` — 49/49 passed on wasm, wasm-gc, js, and native.
+- Completed Phase 6 Task 4: portable session state machine over fake protocol frames, including handshake, channel lifecycle, Broker topology, content sequencing, pull/push delivery, cancellation, ack/reject, and heartbeat handling.
+- Verification for the session milestone: `moon check --target all`, `moon test --target all` — 55/55 passed on wasm, wasm-gc, js, and native.
+- Completed Phase 6 Task 5: review-hardened the session/Broker bridge and added the native-only bounded TCP adapter, async listener, server executable, and real TCP handshake coverage.
+- Verification for the hardening/native milestone: `moon check --target all`; `moon test --target all` — 65/65 passed on wasm, wasm-gc, and js, 68/68 passed on native; native server build and both embedded demos passed.
+
 ### Phase 1: Requirements & Discovery
 
 - **Status:** complete
@@ -44,8 +60,8 @@
 |------|-------|----------|--------|--------|
 | MoonBit toolchain version | `moon version --all` | Current stable toolchain | `moon 0.1.20260915`, `moonc 0.10.13` | ✓ |
 | GitHub identity | `gh api user --jq .login` | `Zcxssxx` | `Zcxssxx` | ✓ |
-| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 23 passed, 0 failed | ✓ |
-| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 36 passed on wasm, wasm-gc, js, native | ✓ |
+| Protocol regression suite | `moon check src/protocol`, `moon test src/protocol` | Clean check, all tests pass | 32 passed, 0 failed | ✓ |
+| Protocol-plus-Broker suite | `moon check --target all`, `moon test --target all` | Clean check, all tests pass | 68 passed on native; 65 on wasm, wasm-gc, js | ✓ |
 | Embedded CLI demo | `moon run cmd/moonmq` | Publish, consume, ack locally | Passed with UTF-8 payload | ✓ |
 | Embedded example | `moon run examples/embedded` | Publish and consume locally | Passed with UTF-8 payload | ✓ |
 

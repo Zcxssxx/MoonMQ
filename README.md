@@ -12,15 +12,17 @@ This repository is in active development for the 2026 MoonBit September Hackatho
 
 Current milestone:
 
-- bounded AMQP protocol-header, frame, and typed method codecs;
-- a documented Core Profile centered on `basic.publish`, `basic.ack`, and `basic.reject`;
+- bounded AMQP protocol-header, frame, field-table, long-string, typed method, and Basic content-header codecs;
+- a documented Core Profile covering connection/channel lifecycle, exchange/queue topology, and Basic delivery methods;
 - pure in-memory default, direct, fanout, and topic routing;
 - pull and push consumption with acknowledgements, reject/requeue, prefetch, and cancellation cleanup;
+- a portable session state machine covering the tested handshake, channel, topology, publish, get, consume, cancel, ack, and reject paths;
+- a native TCP adapter built on `moonbitlang/async@0.20.2`, with fragmented-input handling and a real loopback handshake test;
 - an embedded local demo that runs without RabbitMQ or any other service.
 
-Next milestone: a native TCP/session adapter isolated from the portable protocol and Broker packages.
+Next milestone: expand the external-client interoperability matrix and complete the remaining topology/acknowledgement methods without widening the compatibility claim.
 
-Out of scope for the first release: AMQP 1.0, persistence/recovery, clustering, replication, transactions, publisher confirms, TLS, authentication/ACL, and the full RabbitMQ extension surface.
+Out of scope for the first release: AMQP 1.0, persistence/recovery, clustering, replication, transactions, publisher confirms, TLS, external authentication/ACL, and the full RabbitMQ extension surface.
 
 ## Development
 
@@ -37,6 +39,7 @@ The self-contained demos are available as:
 ```text
 moon run cmd/moonmq
 moon run examples/embedded
+moon run --target native cmd/moonmq-server
 ```
 
 See [`docs/protocol-profile.md`](docs/protocol-profile.md) for the compatibility boundary, [`docs/interop.md`](docs/interop.md) for the current interoperability policy, and [`docs/superpowers/specs/2026-09-16-moonmq-design.md`](docs/superpowers/specs/2026-09-16-moonmq-design.md) for the design rationale.

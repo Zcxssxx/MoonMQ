@@ -84,6 +84,22 @@ pub fn Broker::declare_queue(
 }
 
 ///|
+/// Return the number of ready messages and active consumers for a queue.
+pub fn Broker::queue_stats(
+  self : Broker,
+  queue : String,
+) -> Result[QueueStats, BrokerError] {
+  let index = self.find_queue(queue)
+  if index < 0 {
+    return Err(UnknownQueue)
+  }
+  Ok({
+    message_count: self.queues[index].messages.length(),
+    consumer_count: self.queues[index].consumers.length(),
+  })
+}
+
+///|
 pub fn Broker::bind_queue(
   self : Broker,
   exchange : String,
@@ -168,12 +184,19 @@ fn Broker::pump_queue(self : Broker, queue_index : Int) -> Unit {
     }
     let message = self.queues[queue_index].messages.remove(0)
     let queue_name = self.queues[queue_index].name
-    let consumer_tag = self.queues[queue_index].consumers[consumer_index].tag
+    let internal_tag = self.queues[queue_index].consumers[consumer_index].tag
+    let consumer_tag = self.queues[queue_index].consumers[consumer_index].consumer_tag
     let tag = self.next_delivery_tag()
     let delivery = Delivery::{ tag, queue: queue_name, consumer_tag, message, }
     self.queues[queue_index].consumers[consumer_index].inbox.push(delivery)
     self.queues[queue_index].consumers[consumer_index].unacked += 1
-    self.in_flight.push({ tag, queue: queue_name, consumer_tag, message, })
+    self.in_flight.push({
+      tag,
+      owner: self.queues[queue_index].consumers[consumer_index].owner,
+      queue: queue_name,
+      consumer_tag: internal_tag,
+      message,
+    })
     let count = self.queues[queue_index].consumers.length()
     self.queues[queue_index].next_consumer = (consumer_index + 1) % count
   }
@@ -186,6 +209,23 @@ pub fn Broker::publish(
   exchange : String,
   routing_key : String,
   body : Bytes,
+) -> Result[Int, BrokerError] {
+  self.publish_with_properties(
+    exchange,
+    routing_key,
+    body,
+    @protocol.BasicProperties::new(),
+  )
+}
+
+///|
+/// Publish a message while preserving its AMQP Basic properties.
+pub fn Broker::publish_with_properties(
+  self : Broker,
+  exchange : String,
+  routing_key : String,
+  body : Bytes,
+  properties : @protocol.BasicProperties,
 ) -> Result[Int, BrokerError] {
   let exchange_index = self.find_exchange(exchange)
   if exchange_index < 0 {
@@ -207,7 +247,10 @@ pub fn Broker::publish(
     }
   }
   for queue in targets {
-    self.enqueue(queue, Message::new(body, routing_key))
+    self.enqueue(
+      queue,
+      Message::new_with_properties(exchange, body, routing_key, properties),
+    )
   }
   targets.length() |> Ok
 }
@@ -217,6 +260,16 @@ pub fn Broker::publish(
 pub fn Broker::get(
   self : Broker,
   queue : String,
+) -> Result[Delivery?, BrokerError] {
+  self.get_with_owner(queue, "")
+}
+
+///|
+/// Pull one message with an owner namespace supplied by a session.
+pub fn Broker::get_with_owner(
+  self : Broker,
+  queue : String,
+  owner : String,
 ) -> Result[Delivery?, BrokerError] {
   let queue_index = self.find_queue(queue)
   if queue_index < 0 {
@@ -228,7 +281,7 @@ pub fn Broker::get(
   let message = self.queues[queue_index].messages.remove(0)
   let tag = self.next_delivery_tag()
   let delivery = Delivery::{ tag, queue, consumer_tag: "", message, }
-  self.in_flight.push({ tag, queue, consumer_tag: "", message, })
+  self.in_flight.push({ tag, owner, queue, consumer_tag: "", message, })
   Ok(Some(delivery))
 }
 
@@ -239,6 +292,18 @@ pub fn Broker::consume(
   tag : String,
   prefetch : Int,
 ) -> Result[ConsumerHandle, BrokerError] {
+  self.consume_with_owner(queue, tag, "", prefetch)
+}
+
+///|
+/// Register a consumer with an owner namespace supplied by one session.
+pub fn Broker::consume_with_owner(
+  self : Broker,
+  queue : String,
+  tag : String,
+  owner : String,
+  prefetch : Int,
+) -> Result[ConsumerHandle, BrokerError] {
   if prefetch < 0 {
     return Err(InvalidPrefetch)
   }
@@ -247,18 +312,21 @@ pub fn Broker::consume(
     return Err(UnknownQueue)
   }
   for consumer in self.queues[queue_index].consumers {
-    if consumer.tag == tag {
+    if consumer.consumer_tag == tag && consumer.owner == owner {
       return Err(DuplicateConsumer)
     }
   }
+  let internal_tag = if owner == "" { tag } else { "\{owner}:\{tag}" }
   self.queues[queue_index].consumers.push({
-    tag,
+    tag: internal_tag,
+    consumer_tag: tag,
+    owner,
     prefetch,
     unacked: 0,
     inbox: [],
   })
   self.pump_queue(queue_index)
-  Ok({ queue, tag, })
+  Ok({ queue, tag: internal_tag, })
 }
 
 ///|
@@ -292,10 +360,11 @@ pub fn Broker::poll(
 ///|
 fn Broker::remove_in_flight(
   self : Broker,
+  owner : String,
   tag : UInt64,
 ) -> Result[InFlight, BrokerError] {
   for index = 0; index < self.in_flight.length(); index = index + 1 {
-    if self.in_flight[index].tag == tag {
+    if self.in_flight[index].owner == owner && self.in_flight[index].tag == tag {
       return Ok(self.in_flight.remove(index))
     }
   }
@@ -329,7 +398,17 @@ fn Broker::decrement_consumer(
 ///|
 /// Acknowledge one delivery.
 pub fn Broker::ack(self : Broker, tag : UInt64) -> Result[Unit, BrokerError] {
-  let in_flight = match self.remove_in_flight(tag) {
+  self.ack_with_owner("", tag)
+}
+
+///|
+/// Acknowledge one delivery within a session owner namespace.
+pub fn Broker::ack_with_owner(
+  self : Broker,
+  owner : String,
+  tag : UInt64,
+) -> Result[Unit, BrokerError] {
+  let in_flight = match self.remove_in_flight(owner, tag) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
@@ -348,7 +427,18 @@ pub fn Broker::reject(
   tag : UInt64,
   requeue : Bool,
 ) -> Result[Unit, BrokerError] {
-  let in_flight = match self.remove_in_flight(tag) {
+  self.reject_with_owner("", tag, requeue)
+}
+
+///|
+/// Reject one delivery within a session owner namespace.
+pub fn Broker::reject_with_owner(
+  self : Broker,
+  owner : String,
+  tag : UInt64,
+  requeue : Bool,
+) -> Result[Unit, BrokerError] {
+  let in_flight = match self.remove_in_flight(owner, tag) {
     Ok(value) => value
     Err(error) => return Err(error)
   }
@@ -358,8 +448,10 @@ pub fn Broker::reject(
     if queue_index >= 0 {
       let message = {
         body: in_flight.message.body(),
+        exchange: in_flight.message.exchange(),
         routing_key: in_flight.message.routing_key(),
         redelivered: true,
+        properties: in_flight.message.properties(),
       }
       let messages : Array[Message] = [message]
       for item in self.queues[queue_index].messages {
@@ -404,8 +496,10 @@ pub fn Broker::cancel_consumer(
     if item.queue == handle.queue && item.consumer_tag == handle.tag {
       recovered.push({
         body: item.message.body(),
+        exchange: item.message.exchange(),
         routing_key: item.message.routing_key(),
         redelivered: true,
+        properties: item.message.properties(),
       })
       ignore(self.in_flight.remove(in_flight_index))
     } else {

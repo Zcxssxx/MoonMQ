@@ -13,7 +13,14 @@ pub enum AmqpError {
   UnsupportedMethod
   InvalidExchangeName
   InvalidDeliveryTag
-}
+  InvalidFieldValue
+  FieldTableTooLarge
+  InvalidContentClass
+  InvalidContentWeight
+  InvalidPropertyFlags
+  ContentBodyTooLarge
+  ContentSizeMismatch
+} derive(Eq, @debug.Debug)
 
 ///|
 /// Encode the fixed AMQP 0-9-1 protocol header.
