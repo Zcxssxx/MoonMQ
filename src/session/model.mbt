@@ -18,6 +18,9 @@ pub enum SessionError {
   MissingContent
   PendingContent
   UnsupportedOperation
+  AuthenticationFailed
+  InvalidVirtualHost
+  InvalidFrameSize
   ProtocolError(@protocol.AmqpError)
   BrokerError(@broker.BrokerError)
 } derive(Eq, @debug.Debug)
@@ -42,6 +45,7 @@ struct PendingPublish {
   channel : UInt16
   exchange : String
   routing_key : String
+  mandatory : Bool
 }
 
 ///|
@@ -49,7 +53,15 @@ struct PendingContent {
   channel : UInt16
   exchange : String
   routing_key : String
+  mandatory : Bool
   assembler : @protocol.ContentAssembler
+}
+
+///|
+struct SessionDelivery {
+  channel : UInt16
+  tag : UInt64
+  consumer_tag : String
 }
 
 ///|
@@ -57,8 +69,12 @@ struct PendingContent {
 pub struct Session {
   mut state : SessionState
   broker : @broker.Broker
+  consumer_owner : String
   channels : Array[ChannelState]
   consumers : Array[SessionConsumer]
-  mut pending_publish : PendingPublish?
-  mut pending_content : PendingContent?
+  mut pending_publishes : Array[PendingPublish]
+  mut pending_contents : Array[PendingContent]
+  mut deliveries : Array[SessionDelivery]
+  mut negotiated_channel_max : UInt16
+  mut negotiated_frame_max : Int
 }

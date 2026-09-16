@@ -30,9 +30,9 @@ Phase 6: Core Profile expansion
 - [x] Add protocol value and frame codecs with failing tests first
 - [x] Add AMQP method codecs and Core Profile dispatch
 - [x] Add pure in-memory Broker topology and delivery semantics
-- [ ] Add native TCP connection/channel adapter
+- [x] Add native TCP connection/channel adapter
 - [x] Add embedded and local smoke-test demos
-- **Status:** in_progress for the expanded Core Profile; native TCP remains pending
+- **Status:** complete for the expanded Core Profile; external-client matrix and release audit remain pending
 
 ### Phase 4: Testing & Verification
 
@@ -41,7 +41,7 @@ Phase 6: Core Profile expansion
 - [x] Run native core checks and demo smoke tests
 - [x] Run `moon fmt --check` or the current equivalent
 - [x] Run `moon info` and review public interface changes
-- **Status:** in_progress while content/session/native coverage is being added
+- **Status:** complete for the current scope; external-client interoperability remains pending
 
 ### Phase 5: Delivery
 
@@ -49,7 +49,7 @@ Phase 6: Core Profile expansion
 - [x] Configure GitHub Actions CI
 - [x] Publish meaningful commits, Issues and PRs on the default branch
 - [ ] Prepare Mooncakes publication metadata and acceptance checklist
-- **Status:** in_progress; portable MVP is ready, publication metadata remains
+- **Status:** in_progress; implementation is ready, while publication metadata and release audit remain
 
 ### Phase 6: Core Profile expansion
 
@@ -57,9 +57,9 @@ Phase 6: Core Profile expansion
 - [x] Add connection, channel, exchange, queue, and Basic lifecycle method variants
 - [x] Add Basic content properties and content-header/body sequencing
 - [x] Add a portable session state machine that translates protocol events to Broker actions
-- [ ] Add native TCP adapter behind the session interface where the current async runtime supports it
+- [x] Add native TCP adapter behind the session interface where the current async runtime supports it
 - [x] Add loopback/session tests and update the interoperability matrix
-- **Status:** in_progress; tracked by Issue #12 and the existing transport Issue #5
+- **Status:** in_progress; protocol/content/session/native transport are delivered, while release/interoperability remains tracked by Issue #6
 
 ## Key Questions
 

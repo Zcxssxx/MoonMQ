@@ -13,6 +13,7 @@ pub struct Message {
   exchange : String
   routing_key : String
   redelivered : Bool
+  properties : @protocol.BasicProperties
 } derive(Eq, @debug.Debug)
 
 ///|
@@ -27,7 +28,23 @@ pub fn Message::new_with_exchange(
   body : Bytes,
   routing_key : String,
 ) -> Message {
-  { body, exchange, routing_key, redelivered: false, }
+  Message::new_with_properties(
+    exchange,
+    body,
+    routing_key,
+    @protocol.BasicProperties::new(),
+  )
+}
+
+///|
+/// Create a message with its exchange and AMQP Basic properties.
+pub fn Message::new_with_properties(
+  exchange : String,
+  body : Bytes,
+  routing_key : String,
+  properties : @protocol.BasicProperties,
+) -> Message {
+  { body, exchange, routing_key, redelivered: false, properties, }
 }
 
 ///|
@@ -38,6 +55,11 @@ pub fn Message::body(self : Message) -> Bytes {
 ///|
 pub fn Message::exchange(self : Message) -> String {
   self.exchange
+}
+
+///|
+pub fn Message::properties(self : Message) -> @protocol.BasicProperties {
+  self.properties
 }
 
 ///|
@@ -85,6 +107,11 @@ pub fn Delivery::exchange(self : Delivery) -> String {
 }
 
 ///|
+pub fn Delivery::properties(self : Delivery) -> @protocol.BasicProperties {
+  self.message.properties()
+}
+
+///|
 pub fn Delivery::routing_key(self : Delivery) -> String {
   self.message.routing_key()
 }
@@ -114,6 +141,23 @@ pub enum BrokerError {
 } derive(Eq, @debug.Debug)
 
 ///|
+/// Ready-message and active-consumer counts for one queue.
+pub struct QueueStats {
+  message_count : Int
+  consumer_count : Int
+} derive(Eq, @debug.Debug)
+
+///|
+pub fn QueueStats::message_count(self : QueueStats) -> Int {
+  self.message_count
+}
+
+///|
+pub fn QueueStats::consumer_count(self : QueueStats) -> Int {
+  self.consumer_count
+}
+
+///|
 struct Binding {
   exchange : String
   queue : String
@@ -129,6 +173,8 @@ struct ExchangeState {
 ///|
 priv struct ConsumerState {
   tag : String
+  consumer_tag : String
+  owner : String
   prefetch : Int
   mut unacked : Int
   inbox : Array[Delivery]
@@ -145,6 +191,7 @@ struct QueueState {
 ///|
 struct InFlight {
   tag : UInt64
+  owner : String
   queue : String
   consumer_tag : String
   message : Message

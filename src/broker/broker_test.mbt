@@ -208,6 +208,38 @@ test "broker preserves non-ASCII UTF-8 payload bytes" {
 }
 
 ///|
+test "broker preserves message properties through delivery" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("properties"))
+  let properties = @protocol.BasicProperties::new().with_content_type(
+    "text/plain",
+  )
+  ignore(
+    assert_ok(broker.publish_with_properties("", queue, b"body", properties)),
+  )
+  match broker.get(queue) {
+    Ok(Some(delivery)) =>
+      assert_eq(delivery.properties().content_type(), Some("text/plain"))
+    _ => fail("expected message properties")
+  }
+}
+
+///|
+test "broker reports ready messages and active consumers" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("stats"))
+  let initial = assert_ok(broker.queue_stats(queue))
+  assert_eq(initial.message_count(), 0)
+  assert_eq(initial.consumer_count(), 0)
+  ignore(assert_ok(broker.publish("", queue, b"one")))
+  let consumer = assert_ok(broker.consume(queue, "worker", 1))
+  let active = assert_ok(broker.queue_stats(queue))
+  assert_eq(active.message_count(), 0)
+  assert_eq(active.consumer_count(), 1)
+  assert_true(broker.poll(consumer) is Ok(Some(_)))
+}
+
+///|
 fn[T] assert_ok(result : Result[T, BrokerError]) -> T raise {
   match result {
     Ok(value) => value

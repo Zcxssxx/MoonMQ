@@ -19,3 +19,6 @@ All notable changes to MoonMQ are recorded here. The project is currently pre-1.
 - Added AMQP long-string helpers that preserve arbitrary bytes within a bounded 1 MiB host-side limit.
 - Added Basic content properties, content-header codecs, and bounded multi-frame body assembly with strict declared-size checks.
 - Added a portable session state machine that drives the tested AMQP handshake, channel, topology, publish/content, get, consume/deliver, cancel, acknowledgement, reject, and heartbeat paths against the embedded Broker.
+- Added `Basic.Return`/mandatory publish handling, per-channel content sequencing, channel/session delivery ownership, tune-bound frame output, queue statistics, and explicit rejection of unsupported non-default topology/consumer options.
+- Added exchange/property-preserving Broker messages and session deliveries, including session-scoped consumer namespaces for shared embedded Brokers.
+- Added a native-only byte-stream connection adapter, `moonbitlang/async@0.20.2` TCP server loop, and native executable entrypoint with a real loopback handshake test.

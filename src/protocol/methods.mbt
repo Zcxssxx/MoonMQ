@@ -133,4 +133,10 @@ pub(all) enum Method {
   BasicGetEmpty(cluster_id~ : String)
   BasicAck(delivery_tag~ : UInt64, multiple~ : Bool)
   BasicReject(delivery_tag~ : UInt64, requeue~ : Bool)
+  BasicReturn(
+    reply_code~ : UInt16,
+    reply_text~ : String,
+    exchange~ : String,
+    routing_key~ : String
+  )
 } derive(Eq, @debug.Debug)

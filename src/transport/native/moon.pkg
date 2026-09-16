@@ -1,0 +1,15 @@
+///|
+/// Native-only AMQP stream adapter. The protocol/session cores stay portable.
+supported_targets = "native"
+
+import {
+  "Zcxssxx/moonmq/src/broker",
+  "Zcxssxx/moonmq/src/protocol",
+  "Zcxssxx/moonmq/src/session",
+  "moonbitlang/async/socket",
+  "moonbitlang/core/debug",
+}
+
+import {
+  "moonbitlang/async",
+} for "test"

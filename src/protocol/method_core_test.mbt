@@ -128,3 +128,22 @@ test "long strings preserve arbitrary bytes and reject truncation" {
   )
   assert_true(decode_long_string(b"\x00\x00\x00\x04abc") is Err(_))
 }
+
+///|
+test "basic.return preserves unroutable publish metadata" {
+  let value = Method::BasicReturn(
+    reply_code=UInt16(312),
+    reply_text="NO_ROUTE",
+    exchange="events",
+    routing_key="created",
+  )
+  let expected = b"\x00\x3C\x00\x32\x01\x38\x08NO_ROUTE\x06events\x07created"
+  match encode_method(value) {
+    Ok(bytes) => assert_eq(bytes, expected)
+    Err(_) => fail("basic.return encoding unexpectedly failed")
+  }
+  match decode_method(expected) {
+    Ok(decoded) => assert_eq(decoded, value)
+    Err(_) => fail("basic.return decoding unexpectedly failed")
+  }
+}

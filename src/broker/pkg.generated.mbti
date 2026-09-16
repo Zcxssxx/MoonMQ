@@ -2,6 +2,7 @@
 package "Zcxssxx/moonmq/src/broker"
 
 import {
+  "Zcxssxx/moonmq/src/protocol",
   "moonbitlang/core/debug",
 }
 
@@ -21,16 +22,22 @@ pub struct Broker {
   mut next_queue_id : Int
 }
 pub fn Broker::ack(Self, UInt64) -> Result[Unit, BrokerError]
+pub fn Broker::ack_with_owner(Self, String, UInt64) -> Result[Unit, BrokerError]
 pub fn Broker::bind_queue(Self, String, String, String) -> Result[Unit, BrokerError]
 pub fn Broker::cancel_consumer(Self, ConsumerHandle) -> Result[Unit, BrokerError]
 pub fn Broker::consume(Self, String, String, Int) -> Result[ConsumerHandle, BrokerError]
+pub fn Broker::consume_with_owner(Self, String, String, String, Int) -> Result[ConsumerHandle, BrokerError]
 pub fn Broker::declare_exchange(Self, String, ExchangeKind) -> Result[Unit, BrokerError]
 pub fn Broker::declare_queue(Self, String) -> Result[String, BrokerError]
 pub fn Broker::get(Self, String) -> Result[Delivery?, BrokerError]
+pub fn Broker::get_with_owner(Self, String, String) -> Result[Delivery?, BrokerError]
 pub fn Broker::new() -> Self
 pub fn Broker::poll(Self, ConsumerHandle) -> Result[Delivery?, BrokerError]
 pub fn Broker::publish(Self, String, String, Bytes) -> Result[Int, BrokerError]
+pub fn Broker::publish_with_properties(Self, String, String, Bytes, @protocol.BasicProperties) -> Result[Int, BrokerError]
+pub fn Broker::queue_stats(Self, String) -> Result[QueueStats, BrokerError]
 pub fn Broker::reject(Self, UInt64, Bool) -> Result[Unit, BrokerError]
+pub fn Broker::reject_with_owner(Self, String, UInt64, Bool) -> Result[Unit, BrokerError]
 
 pub enum BrokerError {
   UnknownExchange
@@ -57,6 +64,7 @@ pub struct Delivery {
 pub fn Delivery::body(Self) -> Bytes
 pub fn Delivery::consumer_tag(Self) -> String
 pub fn Delivery::exchange(Self) -> String
+pub fn Delivery::properties(Self) -> @protocol.BasicProperties
 pub fn Delivery::queue(Self) -> String
 pub fn Delivery::redelivered(Self) -> Bool
 pub fn Delivery::routing_key(Self) -> String
@@ -77,15 +85,25 @@ pub struct Message {
   exchange : String
   routing_key : String
   redelivered : Bool
+  properties : @protocol.BasicProperties
 } derive(Eq, @debug.Debug)
 pub fn Message::body(Self) -> Bytes
 pub fn Message::exchange(Self) -> String
 pub fn Message::new(Bytes, String) -> Self
 pub fn Message::new_with_exchange(String, Bytes, String) -> Self
+pub fn Message::new_with_properties(String, Bytes, String, @protocol.BasicProperties) -> Self
+pub fn Message::properties(Self) -> @protocol.BasicProperties
 pub fn Message::redelivered(Self) -> Bool
 pub fn Message::routing_key(Self) -> String
 
 type QueueState
+
+pub struct QueueStats {
+  message_count : Int
+  consumer_count : Int
+} derive(Eq, @debug.Debug)
+pub fn QueueStats::consumer_count(Self) -> Int
+pub fn QueueStats::message_count(Self) -> Int
 
 // Type aliases
 

@@ -58,6 +58,18 @@ test "frame kinds enforce channel and payload invariants" {
 }
 
 ///|
+test "frame validator protects callers that already have a Frame" {
+  assert_true(
+    validate_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(1), b""))
+    is Err(_),
+  )
+  assert_true(
+    validate_frame(Frame::new(FrameKind::FrameHeartbeat, UInt16(0), b"x"))
+    is Err(_),
+  )
+}
+
+///|
 test "method frames require class and method identifiers" {
   let malformed = Frame::new(FrameKind::FrameMethod, UInt16(1), b"\x01")
   assert_true(encode_frame(malformed) is Err(_))

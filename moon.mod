@@ -24,3 +24,7 @@ keywords = [ ]
 preferred_target = "wasm"
 
 description = "AMQP 0-9-1 protocol core and embedded in-memory broker for MoonBit"
+
+import {
+  "moonbitlang/async@0.20.2",
+}

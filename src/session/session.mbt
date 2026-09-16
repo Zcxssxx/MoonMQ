@@ -1,4 +1,7 @@
 ///|
+let next_consumer_owner_id : Array[Int] = [1]
+
+///|
 fn protocol_error(error : @protocol.AmqpError) -> SessionError {
   SessionError::ProtocolError(error)
 }
@@ -35,19 +38,145 @@ fn exchange_kind(value : String) -> Result[@broker.ExchangeKind, SessionError] {
 
 ///|
 pub fn Session::new(broker : @broker.Broker) -> Session {
+  let consumer_owner = "moonmq-session-\{next_consumer_owner_id[0]}"
+  next_consumer_owner_id[0] = next_consumer_owner_id[0] + 1
   {
     state: SessionState::AwaitProtocolHeader,
     broker,
+    consumer_owner,
     channels: [],
     consumers: [],
-    pending_publish: None,
-    pending_content: None,
+    pending_publishes: [],
+    pending_contents: [],
+    deliveries: [],
+    negotiated_channel_max: UInt16(0),
+    negotiated_frame_max: 131072,
   }
 }
 
 ///|
 pub fn Session::state(self : Session) -> SessionState {
   self.state
+}
+
+///|
+/// Return the effective local frame limit after connection tuning.
+pub fn Session::frame_max(self : Session) -> Int {
+  self.negotiated_frame_max
+}
+
+///|
+fn Session::channel_allowed(self : Session, channel : UInt16) -> Bool {
+  self.negotiated_channel_max == UInt16(0) ||
+  channel.to_int() <= self.negotiated_channel_max.to_int()
+}
+
+///|
+fn Session::find_pending_publish(self : Session, channel : UInt16) -> Int {
+  for index = 0; index < self.pending_publishes.length(); index = index + 1 {
+    if self.pending_publishes[index].channel == channel {
+      return index
+    }
+  }
+  -1
+}
+
+///|
+fn Session::find_pending_content(self : Session, channel : UInt16) -> Int {
+  for index = 0; index < self.pending_contents.length(); index = index + 1 {
+    if self.pending_contents[index].channel == channel {
+      return index
+    }
+  }
+  -1
+}
+
+///|
+fn Session::find_delivery(self : Session, tag : UInt64) -> Int {
+  for index = 0; index < self.deliveries.length(); index = index + 1 {
+    if self.deliveries[index].tag == tag {
+      return index
+    }
+  }
+  -1
+}
+
+///|
+fn Session::check_delivery(
+  self : Session,
+  channel : UInt16,
+  tag : UInt64,
+) -> Result[Int, SessionError] {
+  let index = self.find_delivery(tag)
+  if index < 0 || self.deliveries[index].channel != channel {
+    Err(SessionError::InvalidChannel)
+  } else {
+    Ok(index)
+  }
+}
+
+///|
+fn Session::remember_delivery(
+  self : Session,
+  channel : UInt16,
+  delivery : @broker.Delivery,
+) -> Unit {
+  self.deliveries.push({
+    channel,
+    tag: delivery.tag(),
+    consumer_tag: delivery.consumer_tag(),
+  })
+}
+
+///|
+fn Session::forget_delivery(self : Session, tag : UInt64) -> Unit {
+  let index = self.find_delivery(tag)
+  if index >= 0 {
+    ignore(self.deliveries.remove(index))
+  }
+}
+
+///|
+fn Session::forget_consumer_deliveries(
+  self : Session,
+  channel : UInt16,
+  consumer_tag : String,
+) -> Unit {
+  let mut index = 0
+  while index < self.deliveries.length() {
+    let delivery = self.deliveries[index]
+    if delivery.channel == channel && delivery.consumer_tag == consumer_tag {
+      ignore(self.deliveries.remove(index))
+    } else {
+      index = index + 1
+    }
+  }
+}
+
+///|
+fn Session::requeue_get_deliveries(
+  self : Session,
+  channel : UInt16?,
+) -> Result[Unit, SessionError] {
+  let mut index = 0
+  while index < self.deliveries.length() {
+    let delivery = self.deliveries[index]
+    let selected_channel = match channel {
+      Some(value) => delivery.channel == value
+      None => true
+    }
+    let selected = delivery.consumer_tag == "" && selected_channel
+    if selected {
+      match
+        self.broker.reject_with_owner(self.consumer_owner, delivery.tag, true) {
+        Ok(_) => ignore(self.deliveries.remove(index))
+        Err(error) => return Err(broker_error(error))
+      }
+    } else {
+      index = index + 1
+    }
+  }
+  Ok(())
 }
 
 ///|
@@ -152,7 +281,10 @@ fn Session::receive_method_frame(
         return Err(SessionError::InvalidChannel)
       }
       match value {
-        @protocol.Method::ConnectionStartOk(..) => {
+        @protocol.Method::ConnectionStartOk(mechanism~, response~, ..) => {
+          if mechanism != "PLAIN" || response != b"\x00guest\x00guest" {
+            return Err(SessionError::AuthenticationFailed)
+          }
           self.state = SessionState::AwaitTuneOk
           let output : Array[@protocol.Frame] = []
           match
@@ -177,7 +309,24 @@ fn Session::receive_method_frame(
         return Err(SessionError::InvalidChannel)
       }
       match value {
-        @protocol.Method::ConnectionTuneOk(..) => {
+        @protocol.Method::ConnectionTuneOk(channel_max~, frame_max~, heartbeat~) => {
+          ignore(heartbeat)
+          if channel_max != UInt16(0) &&
+            self.negotiated_channel_max != UInt16(0) &&
+            channel_max > self.negotiated_channel_max {
+            return Err(SessionError::InvalidChannel)
+          }
+          let selected_frame_max = frame_max.reinterpret_as_int()
+          if selected_frame_max != 0 &&
+            (selected_frame_max < 8 || selected_frame_max > 131072) {
+            return Err(SessionError::InvalidFrameSize)
+          }
+          self.negotiated_channel_max = channel_max
+          self.negotiated_frame_max = if selected_frame_max == 0 {
+            131072
+          } else {
+            selected_frame_max
+          }
           self.state = SessionState::AwaitOpen
           Ok([])
         }
@@ -189,7 +338,10 @@ fn Session::receive_method_frame(
         return Err(SessionError::InvalidChannel)
       }
       match value {
-        @protocol.Method::ConnectionOpen(..) => {
+        @protocol.Method::ConnectionOpen(virtual_host~, ..) => {
+          if virtual_host != "/" {
+            return Err(SessionError::InvalidVirtualHost)
+          }
           self.state = SessionState::Open
           let output : Array[@protocol.Frame] = []
           match
@@ -212,7 +364,8 @@ fn Session::receive_method_frame(
 }
 
 ///|
-fn append_delivery_frames(
+fn Session::append_delivery_frames(
+  self : Session,
   output : Array[@protocol.Frame],
   channel : UInt16,
   delivery : @broker.Delivery,
@@ -232,20 +385,27 @@ fn append_delivery_frames(
     Ok(_) => ()
     Err(error) => return Err(error)
   }
-  append_content_frames(output, channel, delivery.body())
+  self.append_content_frames(
+    output,
+    channel,
+    delivery.properties(),
+    delivery.body(),
+  )
 }
 
 ///|
-fn append_content_frames(
+fn Session::append_content_frames(
+  self : Session,
   output : Array[@protocol.Frame],
   channel : UInt16,
+  properties : @protocol.BasicProperties,
   body : Bytes,
 ) -> Result[Unit, SessionError] {
   let header = @protocol.ContentHeader::new(
     class_id=UInt16(60),
     weight=UInt16(0),
     body_size=body.length().to_uint64(),
-    properties=@protocol.BasicProperties::new(),
+    properties~,
   )
   let header_payload = match @protocol.encode_content_header(header) {
     Ok(value) => value
@@ -254,8 +414,25 @@ fn append_content_frames(
   output.push(
     @protocol.Frame::new(@protocol.FrameHeader, channel, header_payload),
   )
-  if body.length() > 0 {
-    output.push(@protocol.Frame::new(@protocol.FrameBody, channel, body))
+  let chunk_size = self.negotiated_frame_max - 8
+  if body.length() > 0 && chunk_size <= 0 {
+    return Err(SessionError::InvalidFrameSize)
+  }
+  let mut offset = 0
+  while offset < body.length() {
+    let end = if offset + chunk_size < body.length() {
+      offset + chunk_size
+    } else {
+      body.length()
+    }
+    output.push(
+      @protocol.Frame::new(
+        @protocol.FrameBody,
+        channel,
+        body[offset:end].to_owned(),
+      ),
+    )
+    offset = end
   }
   Ok(())
 }
@@ -268,22 +445,30 @@ fn Session::drain_consumers(
   let mut index = 0
   while index < self.consumers.length() {
     let consumer = self.consumers[index]
-    match self.broker.poll(consumer.handle) {
-      Ok(Some(delivery)) => {
-        match append_delivery_frames(output, consumer.channel, delivery) {
-          Ok(_) => ()
-          Err(error) => return Err(error)
-        }
-        if consumer.no_ack {
-          match self.broker.ack(delivery.tag()) {
+    let mut polling = true
+    while polling {
+      match self.broker.poll(consumer.handle) {
+        Ok(Some(delivery)) => {
+          self.remember_delivery(consumer.channel, delivery)
+          match
+            self.append_delivery_frames(output, consumer.channel, delivery) {
             Ok(_) => ()
-            Err(error) => return Err(broker_error(error))
+            Err(error) => return Err(error)
+          }
+          if consumer.no_ack {
+            match
+              self.broker.ack_with_owner(self.consumer_owner, delivery.tag()) {
+              Ok(_) => ()
+              Err(error) => return Err(broker_error(error))
+            }
+            self.forget_delivery(delivery.tag())
           }
         }
+        Ok(None) => polling = false
+        Err(error) => return Err(broker_error(error))
       }
-      Ok(None) => index = index + 1
-      Err(error) => return Err(broker_error(error))
     }
+    index = index + 1
   }
   Ok(())
 }
@@ -291,24 +476,56 @@ fn Session::drain_consumers(
 ///|
 fn Session::finish_pending_content(
   self : Session,
+  channel : UInt16,
 ) -> Result[Array[@protocol.Frame], SessionError] {
-  let pending = match self.pending_content {
-    Some(value) => value
-    None => return Err(SessionError::MissingContent)
+  let index = self.find_pending_content(channel)
+  if index < 0 {
+    return Err(SessionError::MissingContent)
   }
+  let pending = self.pending_contents[index]
   let message = match pending.assembler.finish() {
     Ok(value) => value
     Err(@protocol.ContentSizeMismatch) => return Ok([])
     Err(error) => return Err(protocol_error(error))
   }
-  self.pending_content = None
-  self.pending_publish = None
-  match
-    self.broker.publish(pending.exchange, pending.routing_key, message.body()) {
-    Ok(_) => ()
+  ignore(self.pending_contents.remove(index))
+  let routed = match
+    self.broker.publish_with_properties(
+      pending.exchange,
+      pending.routing_key,
+      message.body(),
+      message.header().properties(),
+    ) {
+    Ok(value) => value
     Err(error) => return Err(broker_error(error))
   }
   let output : Array[@protocol.Frame] = []
+  if routed == 0 && pending.mandatory {
+    match
+      push_method_frame(
+        output,
+        channel,
+        @protocol.Method::BasicReturn(
+          reply_code=UInt16(312),
+          reply_text="NO_ROUTE",
+          exchange=pending.exchange,
+          routing_key=pending.routing_key,
+        ),
+      ) {
+      Ok(_) => ()
+      Err(error) => return Err(error)
+    }
+    match
+      self.append_content_frames(
+        output,
+        channel,
+        message.header().properties(),
+        message.body(),
+      ) {
+      Ok(_) => ()
+      Err(error) => return Err(error)
+    }
+  }
   match self.drain_consumers(output) {
     Ok(_) => Ok(output)
     Err(error) => Err(error)
@@ -325,42 +542,46 @@ fn Session::receive_content_frame(
   }
   match frame.kind() {
     @protocol.FrameHeader => {
-      let publish = match self.pending_publish {
-        Some(value) => value
-        None => return Err(SessionError::MissingContent)
+      let publish_index = self.find_pending_publish(frame.channel())
+      if publish_index < 0 {
+        if self.pending_publishes.length() > 0 {
+          return Err(SessionError::InvalidChannel)
+        }
+        return Err(SessionError::MissingContent)
       }
-      if publish.channel != frame.channel() {
-        return Err(SessionError::InvalidChannel)
-      }
-      if self.pending_content is Some(_) {
+      if self.find_pending_content(frame.channel()) >= 0 {
         return Err(SessionError::PendingContent)
       }
+      let publish = self.pending_publishes[publish_index]
       let header = match @protocol.decode_content_header(frame.payload()) {
         Ok(value) => value
         Err(error) => return Err(protocol_error(error))
       }
-      self.pending_content = Some({
+      ignore(self.pending_publishes.remove(publish_index))
+      self.pending_contents.push({
         channel: frame.channel(),
         exchange: publish.exchange,
         routing_key: publish.routing_key,
+        mandatory: publish.mandatory,
         assembler: @protocol.ContentAssembler::new(header, 0),
       })
       if header.body_size() == UInt64(0) {
-        self.finish_pending_content()
+        self.finish_pending_content(frame.channel())
       } else {
         Ok([])
       }
     }
     @protocol.FrameBody => {
-      let pending = match self.pending_content {
-        Some(value) => value
-        None => return Err(SessionError::MissingContent)
+      let content_index = self.find_pending_content(frame.channel())
+      if content_index < 0 {
+        if self.pending_contents.length() > 0 {
+          return Err(SessionError::InvalidChannel)
+        }
+        return Err(SessionError::MissingContent)
       }
-      if pending.channel != frame.channel() {
-        return Err(SessionError::InvalidChannel)
-      }
+      let pending = self.pending_contents[content_index]
       match pending.assembler.push_body(frame.payload()) {
-        Ok(_) => self.finish_pending_content()
+        Ok(_) => self.finish_pending_content(frame.channel())
         Err(error) => Err(protocol_error(error))
       }
     }
@@ -381,6 +602,7 @@ fn Session::remove_channel_consumers(
         Ok(_) => ()
         Err(error) => return Err(broker_error(error))
       }
+      self.forget_consumer_deliveries(channel, self.consumers[index].tag)
       ignore(self.consumers.remove(index))
     } else {
       index = index + 1
@@ -397,6 +619,8 @@ fn Session::remove_all_consumers(self : Session) -> Result[Unit, SessionError] {
       Ok(_) => ()
       Err(error) => return Err(broker_error(error))
     }
+    let consumer_tag = self.consumers[0].tag
+    self.forget_consumer_deliveries(self.consumers[0].channel, consumer_tag)
     ignore(self.consumers.remove(0))
   }
   Ok(())
@@ -410,8 +634,12 @@ fn Session::dispatch_open(
 ) -> Result[Array[@protocol.Frame], SessionError] {
   match value {
     @protocol.Method::ChannelOpen(out_of_band~) => {
-      ignore(out_of_band)
-      if channel == UInt16(0) || self.find_channel(channel) >= 0 {
+      if out_of_band != "" {
+        return Err(SessionError::UnsupportedOperation)
+      }
+      if channel == UInt16(0) ||
+        !self.channel_allowed(channel) ||
+        self.find_channel(channel) >= 0 {
         return Err(SessionError::InvalidChannel)
       }
       self.channels.push({ id: channel, prefetch: UInt16(0), open: true, })
@@ -430,6 +658,26 @@ fn Session::dispatch_open(
       match self.remove_channel_consumers(channel) {
         Ok(_) => ()
         Err(error) => return Err(error)
+      }
+      match self.requeue_get_deliveries(Some(channel)) {
+        Ok(_) => ()
+        Err(error) => return Err(error)
+      }
+      let mut pending_index = 0
+      while pending_index < self.pending_publishes.length() {
+        if self.pending_publishes[pending_index].channel == channel {
+          ignore(self.pending_publishes.remove(pending_index))
+        } else {
+          pending_index = pending_index + 1
+        }
+      }
+      pending_index = 0
+      while pending_index < self.pending_contents.length() {
+        if self.pending_contents[pending_index].channel == channel {
+          ignore(self.pending_contents.remove(pending_index))
+        } else {
+          pending_index = pending_index + 1
+        }
       }
       let output : Array[@protocol.Frame] = []
       match
@@ -450,6 +698,13 @@ fn Session::dispatch_open(
         Ok(_) => ()
         Err(error) => return Err(error)
       }
+      match self.requeue_get_deliveries(None) {
+        Ok(_) => ()
+        Err(error) => return Err(error)
+      }
+      self.pending_publishes = []
+      self.pending_contents = []
+      self.deliveries = []
       self.state = SessionState::Closed
       let output : Array[@protocol.Frame] = []
       match
@@ -462,21 +717,48 @@ fn Session::dispatch_open(
         Err(error) => Err(error)
       }
     }
-    @protocol.Method::BasicPublish(exchange~, routing_key~, ..) => {
+    @protocol.Method::BasicPublish(
+      exchange~,
+      routing_key~,
+      mandatory~,
+      immediate~,
+      ..
+    ) => {
       match self.check_channel(channel) {
         Ok(_) => ()
         Err(error) => return Err(error)
       }
-      if self.pending_publish is Some(_) || self.pending_content is Some(_) {
+      if immediate {
+        return Err(SessionError::UnsupportedOperation)
+      }
+      if self.find_pending_publish(channel) >= 0 ||
+        self.find_pending_content(channel) >= 0 {
         return Err(SessionError::PendingContent)
       }
-      self.pending_publish = Some({ channel, exchange, routing_key, })
+      self.pending_publishes.push({ channel, exchange, routing_key, mandatory, })
       Ok([])
     }
-    @protocol.Method::ExchangeDeclare(exchange~, kind~, nowait~, ..) => {
+    @protocol.Method::ExchangeDeclare(
+      exchange~,
+      kind~,
+      passive~,
+      durable~,
+      auto_delete~,
+      internal~,
+      nowait~,
+      arguments~,
+      ..
+    ) => {
       match self.check_channel(channel) {
         Ok(_) => ()
         Err(error) => return Err(error)
+      }
+      if passive ||
+        durable ||
+        auto_delete ||
+        internal ||
+        arguments.entries().length() > 0 {
+        return Err(SessionError::UnsupportedOperation)
       }
       let exchange_kind = match exchange_kind(kind) {
         Ok(value) => value
@@ -500,12 +782,32 @@ fn Session::dispatch_open(
       }
       Ok(output)
     }
-    @protocol.Method::QueueDeclare(queue~, nowait~, ..) => {
+    @protocol.Method::QueueDeclare(
+      queue~,
+      passive~,
+      durable~,
+      exclusive~,
+      auto_delete~,
+      nowait~,
+      arguments~,
+      ..
+    ) => {
       match self.check_channel(channel) {
         Ok(_) => ()
         Err(error) => return Err(error)
       }
+      if passive ||
+        durable ||
+        exclusive ||
+        auto_delete ||
+        arguments.entries().length() > 0 {
+        return Err(SessionError::UnsupportedOperation)
+      }
       let declared_name = match self.broker.declare_queue(queue) {
+        Ok(value) => value
+        Err(error) => return Err(broker_error(error))
+      }
+      let stats = match self.broker.queue_stats(declared_name) {
         Ok(value) => value
         Err(error) => return Err(broker_error(error))
       }
@@ -517,8 +819,8 @@ fn Session::dispatch_open(
             channel,
             @protocol.Method::QueueDeclareOk(
               queue=declared_name,
-              message_count=0U,
-              consumer_count=0U,
+              message_count=stats.message_count().reinterpret_as_uint(),
+              consumer_count=stats.consumer_count().reinterpret_as_uint(),
             ),
           ) {
           Ok(_) => ()
@@ -527,10 +829,21 @@ fn Session::dispatch_open(
       }
       Ok(output)
     }
-    @protocol.Method::QueueBind(queue~, exchange~, routing_key~, nowait~, ..) => {
+    @protocol.Method::QueueBind(
+      ticket~,
+      queue~,
+      exchange~,
+      routing_key~,
+      nowait~,
+      arguments~
+    ) => {
+      ignore(ticket)
       match self.check_channel(channel) {
         Ok(_) => ()
         Err(error) => return Err(error)
+      }
+      if arguments.entries().length() > 0 {
+        return Err(SessionError::UnsupportedOperation)
       }
       match self.broker.bind_queue(exchange, queue, routing_key) {
         Ok(_) => ()
@@ -546,8 +859,10 @@ fn Session::dispatch_open(
       }
       Ok(output)
     }
-    @protocol.Method::BasicQos(prefetch_count~, global~, ..) => {
-      ignore(global)
+    @protocol.Method::BasicQos(prefetch_size~, prefetch_count~, global~) => {
+      if prefetch_size != UInt(0) || global {
+        return Err(SessionError::UnsupportedOperation)
+      }
       let index = match self.require_channel(channel) {
         Ok(value) => value
         Err(error) => return Err(error)
@@ -559,12 +874,30 @@ fn Session::dispatch_open(
         Err(error) => Err(error)
       }
     }
-    @protocol.Method::BasicConsume(queue~, consumer_tag~, no_ack~, nowait~, ..) => {
+    @protocol.Method::BasicConsume(
+      queue~,
+      consumer_tag~,
+      no_local~,
+      no_ack~,
+      exclusive~,
+      nowait~,
+      arguments~,
+      ..
+    ) => {
+      if no_local || exclusive || arguments.entries().length() > 0 {
+        return Err(SessionError::UnsupportedOperation)
+      }
       let prefetch = match self.channel_prefetch(channel) {
         Ok(value) => value
         Err(error) => return Err(error)
       }
-      let handle = match self.broker.consume(queue, consumer_tag, prefetch) {
+      let handle = match
+        self.broker.consume_with_owner(
+          queue,
+          consumer_tag,
+          self.consumer_owner,
+          prefetch,
+        ) {
         Ok(value) => value
         Err(error) => return Err(broker_error(error))
       }
@@ -627,7 +960,8 @@ fn Session::dispatch_open(
         Err(error) => return Err(error)
       }
       let output : Array[@protocol.Frame] = []
-      let delivery = match self.broker.get(queue) {
+      let delivery = match
+        self.broker.get_with_owner(queue, self.consumer_owner) {
         Ok(Some(value)) => value
         Ok(None) =>
           match
@@ -641,6 +975,10 @@ fn Session::dispatch_open(
           }
         Err(error) => return Err(broker_error(error))
       }
+      let stats = match self.broker.queue_stats(queue) {
+        Ok(value) => value
+        Err(error) => return Err(broker_error(error))
+      }
       match
         push_method_frame(
           output,
@@ -650,21 +988,29 @@ fn Session::dispatch_open(
             redelivered=delivery.redelivered(),
             exchange=delivery.exchange(),
             routing_key=delivery.routing_key(),
-            message_count=0U,
+            message_count=stats.message_count().reinterpret_as_uint(),
           ),
         ) {
         Ok(_) => ()
         Err(error) => return Err(error)
       }
-      match append_content_frames(output, channel, delivery.body()) {
+      match
+        self.append_content_frames(
+          output,
+          channel,
+          delivery.properties(),
+          delivery.body(),
+        ) {
         Ok(_) => ()
         Err(error) => return Err(error)
       }
       if no_ack {
-        match self.broker.ack(delivery.tag()) {
+        match self.broker.ack_with_owner(self.consumer_owner, delivery.tag()) {
           Ok(_) => ()
           Err(error) => return Err(broker_error(error))
         }
+      } else {
+        self.remember_delivery(channel, delivery)
       }
       Ok(output)
     }
@@ -676,8 +1022,19 @@ fn Session::dispatch_open(
       if multiple {
         return Err(SessionError::UnsupportedOperation)
       }
-      match self.broker.ack(delivery_tag) {
-        Ok(_) => Ok([])
+      let delivery_index = match self.check_delivery(channel, delivery_tag) {
+        Ok(value) => value
+        Err(error) => return Err(error)
+      }
+      match self.broker.ack_with_owner(self.consumer_owner, delivery_tag) {
+        Ok(_) => {
+          ignore(self.deliveries.remove(delivery_index))
+          let output : Array[@protocol.Frame] = []
+          match self.drain_consumers(output) {
+            Ok(_) => Ok(output)
+            Err(error) => Err(error)
+          }
+        }
         Err(error) => Err(broker_error(error))
       }
     }
@@ -686,8 +1043,18 @@ fn Session::dispatch_open(
         Ok(_) => ()
         Err(error) => return Err(error)
       }
-      match self.broker.reject(delivery_tag, requeue) {
+      let delivery_index = match self.check_delivery(channel, delivery_tag) {
+        Ok(value) => value
+        Err(error) => return Err(error)
+      }
+      match
+        self.broker.reject_with_owner(
+          self.consumer_owner,
+          delivery_tag,
+          requeue,
+        ) {
         Ok(_) => {
+          ignore(self.deliveries.remove(delivery_index))
           let output : Array[@protocol.Frame] = []
           match self.drain_consumers(output) {
             Ok(_) => Ok(output)
@@ -712,6 +1079,7 @@ fn Session::dispatch_open(
     | @protocol.Method::ExchangeDeleteOk
     | @protocol.Method::QueueDeleteOk(..)
     | @protocol.Method::BasicGetOk(..)
+    | @protocol.Method::BasicReturn(..)
     | @protocol.Method::ConnectionStart(..)
     | @protocol.Method::ConnectionStartOk(..)
     | @protocol.Method::ConnectionTune(..)
@@ -726,6 +1094,16 @@ fn Session::dispatch_open(
 }
 
 ///|
+fn Session::abort(self : Session) -> Unit {
+  ignore(self.remove_all_consumers())
+  ignore(self.requeue_get_deliveries(None))
+  self.pending_publishes = []
+  self.pending_contents = []
+  self.deliveries = []
+  self.state = SessionState::Closed
+}
+
+///|
 pub fn Session::receive_frame(
   self : Session,
   frame : @protocol.Frame,
@@ -734,11 +1112,27 @@ pub fn Session::receive_frame(
     SessionState::AwaitProtocolHeader | SessionState::Closed =>
       Err(SessionError::InvalidState)
     _ =>
-      match frame.kind() {
-        @protocol.FrameMethod => self.receive_method_frame(frame)
-        @protocol.FrameHeader | @protocol.FrameBody =>
-          self.receive_content_frame(frame)
-        @protocol.FrameHeartbeat => Ok([])
+      match
+        @protocol.validate_frame_with_max(frame, self.negotiated_frame_max) {
+        Ok(_) => {
+          let result = match frame.kind() {
+            @protocol.FrameMethod => self.receive_method_frame(frame)
+            @protocol.FrameHeader | @protocol.FrameBody =>
+              self.receive_content_frame(frame)
+            @protocol.FrameHeartbeat => Ok([])
+          }
+          match result {
+            Err(SessionError::ProtocolError(error)) => {
+              self.abort()
+              Err(SessionError::ProtocolError(error))
+            }
+            _ => result
+          }
+        }
+        Err(error) => {
+          self.state = SessionState::Closed
+          Err(protocol_error(error))
+        }
       }
   }
 }

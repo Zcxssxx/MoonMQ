@@ -361,6 +361,14 @@ pub fn encode_method(value : Method) -> Result[Bytes, AmqpError] {
         Ok(method_flags(requeue, false)),
       ])
     }
+    BasicReturn(reply_code~, reply_text~, exchange~, routing_key~) =>
+      encode_parts([
+        Ok(method_prefix(UInt16(60), UInt16(50))),
+        Ok(encode_u16(reply_code)),
+        encode_short_string(reply_text),
+        encode_short_string(exchange),
+        encode_short_string(routing_key),
+      ])
   }
 }
 
@@ -1091,6 +1099,29 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
               immediate=(bits & 2) != 0,
             ),
           )
+        Err(error) => Err(error)
+      }
+    }
+    (60, 50) => {
+      let (reply_code, offset) = match read_u16_at(input, 4) {
+        Ok(value) => value
+        Err(error) => return Err(error)
+      }
+      let (reply_text, offset) = match read_short_string_at(input, offset) {
+        Ok(value) => value
+        Err(error) => return Err(error)
+      }
+      let (exchange, offset) = match read_short_string_at(input, offset) {
+        Ok(value) => value
+        Err(error) => return Err(error)
+      }
+      let (routing_key, offset) = match read_short_string_at(input, offset) {
+        Ok(value) => value
+        Err(error) => return Err(error)
+      }
+      match require_end(input, offset) {
+        Ok(_) =>
+          Ok(BasicReturn(reply_code~, reply_text~, exchange~, routing_key~))
         Err(error) => Err(error)
       }
     }
