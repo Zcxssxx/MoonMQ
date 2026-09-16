@@ -35,15 +35,15 @@ This log is intentionally chronological. Each implementation milestone links its
 ## 2026-09-16 — portable MVP submission boundary
 
 - PR #7 (protocol), PR #8 (protocol correctness), and PR #9 (embedded Broker) are merged into `main`.
-- Final local verification on the merged tree: 33 tests passed on wasm, wasm-gc, js, and native; both demos passed; formatting and generated public interfaces were checked.
+- Final local verification before the follow-up: 34 tests passed on wasm, wasm-gc, js, and native; both demos passed; formatting and generated public interfaces were checked.
 - The submission boundary is the portable AMQP Core Profile plus deterministic embedded Broker. Native TCP, external-client interoperability, and Mooncakes publication remain explicitly tracked follow-ups rather than unverified claims.
 
-## 2026-09-16 — Broker review follow-up ([#10](https://github.com/Zcxssxx/MoonMQ/issues/10))
+## 2026-09-16 — Broker review follow-up ([#10](https://github.com/Zcxssxx/MoonMQ/issues/10), [PR #11](https://github.com/Zcxssxx/MoonMQ/pull/11))
 
 - A review found that removing a middle consumer could leave the round-robin cursor pointing at the wrong active consumer.
 - Added a red regression test for the A/B/C cancellation sequence and adjusted the cursor when the consumer array shrinks.
-- Verification: Broker package 11/11 and full project 34/34 passed on wasm, wasm-gc, js, and native; both demos passed.
-- Commits: `3821c5f`, `282844b`.
+- Verification: Broker package 13/13 and full project 36/36 passed on wasm, wasm-gc, js, and native; both demos passed.
+- Commits: `3821c5f`, `282844b`, `5a49672`.
 
 ## Record format for future entries
 
