@@ -54,3 +54,10 @@ This log is intentionally chronological. Each implementation milestone links its
 ## Record format for future entries
 
 Each milestone entry will include its date, Issue/PR links, user-visible behavior, verification commands, compatibility limitations, and commit summary.
+
+## 2026-09-16 — Core Profile expansion: field tables ([#12](https://github.com/Zcxssxx/MoonMQ/issues/12))
+
+- Added deterministic, bounded AMQP field-table and field-array encoding/decoding with nested values, long strings, timestamps, and explicit malformed-value errors.
+- Added red-first tests for empty tables, nested round trips, unknown tags, truncation, and declared-size mismatches.
+- Verification: `moon check --target all`, `moon test --target all` — 39 tests passed on wasm, wasm-gc, js, and native; `moon fmt --check` and `moon info` completed.
+- Commit: `e3a3020`.
