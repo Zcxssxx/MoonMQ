@@ -66,7 +66,11 @@ pub fn Broker::declare_queue(
   requested_name : String,
 ) -> Result[String, BrokerError] {
   let name = if requested_name == "" {
-    let generated = "amq.gen-{self.next_queue_id}"
+    let mut generated = "amq.gen-\{self.next_queue_id}"
+    while self.find_queue(generated) >= 0 {
+      self.next_queue_id = self.next_queue_id + 1
+      generated = "amq.gen-\{self.next_queue_id}"
+    }
     self.next_queue_id = self.next_queue_id + 1
     generated
   } else {
