@@ -61,6 +61,9 @@ pub fn encode_method(value : Method) -> Result[Bytes, AmqpError] {
       Ok(concat_bytes(with_routing_key, method_flags(mandatory, immediate)))
     }
     BasicAck(delivery_tag~, multiple~) => {
+      if delivery_tag == UInt64(0) && !multiple {
+        return Err(InvalidDeliveryTag)
+      }
       let with_tag = concat_bytes(
         method_prefix(UInt16(60), UInt16(80)),
         encode_u64(delivery_tag),
@@ -68,6 +71,9 @@ pub fn encode_method(value : Method) -> Result[Bytes, AmqpError] {
       Ok(concat_bytes(with_tag, method_flags(multiple, false)))
     }
     BasicReject(delivery_tag~, requeue~) => {
+      if delivery_tag == UInt64(0) {
+        return Err(InvalidDeliveryTag)
+      }
       let with_tag = concat_bytes(
         method_prefix(UInt16(60), UInt16(90)),
         encode_u64(delivery_tag),
@@ -180,6 +186,9 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
     if (flags & 0xFE) != 0 {
       return Err(UnsupportedMethod)
     }
+    if delivery_tag == UInt64(0) && (flags & 0x01) == 0 {
+      return Err(InvalidDeliveryTag)
+    }
     Ok(BasicAck(delivery_tag~, multiple=(flags & 0x01) != 0))
   } else if class_id == UInt16(60) && method_id == UInt16(90) {
     let (delivery_tag, offset) = match read_u64_at(input, 4) {
@@ -192,6 +201,9 @@ pub fn decode_method(input : Bytes) -> Result[Method, AmqpError] {
     let flags = input[offset].to_int()
     if (flags & 0xFE) != 0 {
       return Err(UnsupportedMethod)
+    }
+    if delivery_tag == UInt64(0) {
+      return Err(InvalidDeliveryTag)
     }
     Ok(BasicReject(delivery_tag~, requeue=(flags & 0x01) != 0))
   } else {

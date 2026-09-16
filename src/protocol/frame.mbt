@@ -95,6 +95,8 @@ fn frame_kind_from_byte(value : Byte) -> Result[FrameKind, AmqpError] {
 
 ///|
 /// Encode one complete AMQP frame, including its `0xCE` terminator.
+/// `max_frame_size` is MoonMQ's bounded local limit; it is not the wire-level
+/// unsigned AMQP `frame-max` field.
 pub fn encode_frame_with_max(
   frame : Frame,
   max_frame_size : Int,
@@ -135,6 +137,7 @@ pub fn encode_frame(frame : Frame) -> Result[Bytes, AmqpError] {
 
 ///|
 /// Decode exactly one complete AMQP frame.
+/// `max_frame_size` is MoonMQ's bounded local limit; zero selects the default.
 pub fn decode_frame_with_max(
   input : Bytes,
   max_frame_size : Int,
