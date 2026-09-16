@@ -121,6 +121,28 @@ test "cancel requeues unacknowledged push deliveries" {
 }
 
 ///|
+test "anonymous queue names never alias an existing named queue" {
+  let broker = Broker::new()
+  let first = assert_ok(broker.declare_queue(""))
+  assert_eq(first, "amq.gen-1")
+  ignore(assert_ok(broker.declare_queue("amq.gen-2")))
+  let second = assert_ok(broker.declare_queue(""))
+  assert_true(second != "amq.gen-2")
+}
+
+///|
+test "broker preserves non-ASCII UTF-8 payload bytes" {
+  let broker = Broker::new()
+  let queue = assert_ok(broker.declare_queue("utf8"))
+  let payload = b"\xE5\xB5\x8C\xE5\x85\xa5"
+  ignore(assert_ok(broker.publish("", queue, payload)))
+  match broker.get(queue) {
+    Ok(Some(delivery)) => assert_eq(delivery.body(), payload)
+    _ => fail("expected UTF-8 payload")
+  }
+}
+
+///|
 fn[T] assert_ok(result : Result[T, BrokerError]) -> T raise {
   match result {
     Ok(value) => value
