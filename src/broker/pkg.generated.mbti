@@ -22,6 +22,7 @@ pub struct Broker {
   mut next_queue_id : Int
 }
 pub fn Broker::ack(Self, UInt64) -> Result[Unit, BrokerError]
+pub fn Broker::ack_many_with_owner(Self, String, Array[UInt64]) -> Result[Unit, BrokerError]
 pub fn Broker::ack_with_owner(Self, String, UInt64) -> Result[Unit, BrokerError]
 pub fn Broker::bind_queue(Self, String, String, String) -> Result[Unit, BrokerError]
 pub fn Broker::cancel_consumer(Self, ConsumerHandle) -> Result[Unit, BrokerError]
@@ -29,6 +30,8 @@ pub fn Broker::consume(Self, String, String, Int) -> Result[ConsumerHandle, Brok
 pub fn Broker::consume_with_owner(Self, String, String, String, Int) -> Result[ConsumerHandle, BrokerError]
 pub fn Broker::declare_exchange(Self, String, ExchangeKind) -> Result[Unit, BrokerError]
 pub fn Broker::declare_queue(Self, String) -> Result[String, BrokerError]
+pub fn Broker::delete_exchange(Self, String, Bool) -> Result[Unit, BrokerError]
+pub fn Broker::delete_queue(Self, String, Bool, Bool) -> Result[Int, BrokerError]
 pub fn Broker::get(Self, String) -> Result[Delivery?, BrokerError]
 pub fn Broker::get_with_owner(Self, String, String) -> Result[Delivery?, BrokerError]
 pub fn Broker::new() -> Self
@@ -38,12 +41,20 @@ pub fn Broker::publish_with_properties(Self, String, String, Bytes, @protocol.Ba
 pub fn Broker::queue_stats(Self, String) -> Result[QueueStats, BrokerError]
 pub fn Broker::reject(Self, UInt64, Bool) -> Result[Unit, BrokerError]
 pub fn Broker::reject_with_owner(Self, String, UInt64, Bool) -> Result[Unit, BrokerError]
+pub fn Broker::unbind_queue(Self, String, String, String) -> Result[Unit, BrokerError]
 
 pub enum BrokerError {
   UnknownExchange
   UnknownQueue
   ExchangeKindMismatch
+  CannotDeleteDefaultExchange
+  ExchangeInUse
   DuplicateBinding
+  UnknownBinding
+  QueueInUse
+  QueueNotEmpty
+  QueueDeleteWithConsumersUnsupported
+  QueueDeleteWithUnackedDeliveriesUnsupported
   DuplicateConsumer
   UnknownConsumer
   UnknownDelivery

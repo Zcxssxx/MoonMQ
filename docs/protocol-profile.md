@@ -10,8 +10,8 @@ This document is the compatibility contract for the first release. It is narrowe
 | Primitives | network-byte-order `u16`/`u32`/`u64`, UTF-8 short strings, bounded arbitrary-byte long strings, exact-width and malformed-input checks |
 | Methods | typed connection/channel handshake, exchange/queue topology, Basic QoS/consume/get/deliver/publish/return/ack/reject/cancel methods with field validation |
 | Content | Basic class content properties, header property flags, and bounded multi-frame body assembly with exact declared-size checks |
-| Broker | in-memory default/direct/fanout/topic routing, named/generated queues, push/pull delivery, prefetch, ack/reject/requeue, cancellation cleanup |
-| Session | portable handshake, channel lifecycle, topology, publish/content assembly, get, consume/deliver, cancel, ack, reject, and heartbeat translation to the embedded Broker |
+| Broker | in-memory default/direct/fanout/topic routing, named/generated queues, push/pull delivery, prefetch, ack/reject/requeue, cancellation cleanup, exchange delete, queue unbind, idle queue delete, and owner-scoped batch acknowledgement |
+| Session | portable handshake, channel lifecycle, exchange/queue declare/delete/bind/unbind, publish/content assembly, get, consume/deliver, cancel, single/multiple ack, reject, and heartbeat translation to the embedded Broker |
 | Transport | native-only bounded TCP adapter on `moonbitlang/async/socket`; portable embedded/session use remains available on all targets |
 
 ## Deferred profile expansion
@@ -24,7 +24,12 @@ AMQP 1.0 and 0-10, persistence/recovery, replication, clustering, transactions, 
 
 ## Session limitations
 
-The session currently exposes the broker's deterministic in-memory semantics. Exchange/queue deletion, queue unbind, and multiple acknowledgements are codec-complete but return an explicit unsupported-operation result at the session boundary. The native profile currently accepts only `PLAIN`/`guest`/`guest` on virtual host `/`; it is a local demonstration policy, not a general authentication system. Negotiated channel and frame limits are bounded and applied to session validation and response body fragmentation. Basic content properties and the source exchange are preserved through Broker delivery and returned content frames.
+- `exchange.delete` removes a named exchange and its bindings. `if-unused` rejects exchanges that still have bindings. The built-in default exchange cannot be deleted.
+- `queue.unbind` removes an exact queue/exchange/routing-key binding. Its arguments table must be empty.
+- `queue.delete` honors `if-unused` and `if-empty`, returns the ready-message count, and removes bindings. It is supported only when the queue has no active consumers and no unsettled deliveries. Deleting an active queue is explicitly unsupported, even when `if-unused` is false, because the portable session/native transport boundary has no cross-session consumer-cancel or delivery-invalidation notification mechanism.
+- `basic.ack(multiple=true)` acknowledges only outstanding deliveries on the current channel; tag zero acknowledges all outstanding deliveries on that channel. The Broker validates the owner-scoped tag set before changing state and resumes prefetch-limited dispatch afterward.
+
+The native profile currently accepts only `PLAIN`/`guest`/`guest` on virtual host `/`; it is a local demonstration policy, not a general authentication system. Negotiated channel and frame limits are bounded and applied to session validation and response body fragmentation. Basic content properties and the source exchange are preserved through Broker delivery and returned content frames.
 
 ## Interoperability position
 

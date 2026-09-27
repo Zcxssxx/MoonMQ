@@ -98,3 +98,13 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - The first clean GitHub runner exposed that `moon check` could not resolve `moonbitlang/async@0.20.2` before the registry index was refreshed.
 - Added an explicit `moon update` step before CI checks; local cross-target verification remains green.
 - Commit: `8dc170b` (`ci: update MoonBit registry before checks`).
+
+## 2026-09-24 — September Hackathon acceptance expansion ([PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13))
+
+- Added exchange deletion with `if-unused` and binding cleanup, exact queue unbind, idle-queue deletion with explicit consumer/in-flight restrictions, and owner-scoped multiple ACK with channel filtering in the portable session.
+- Added Broker and Session tests for success responses, `nowait`, flags, channel isolation, prefetch recovery, cross-session queue-deletion rejection, and no-partial-mutation errors.
+- Updated the compatibility profile, README, acceptance self-check, module repository metadata, and CI to use strict all-target checks and tests.
+- Toolchain: `moon 0.1.20260915`, `moonc v0.10.13+cbb11c36f`, `moonrun 0.1.20260915`.
+- Verification: `moon check --deny-warn --target all`; `moon test --deny-warn --target all` — 86 tests passed on wasm, wasm-gc, and js, 89 passed on native; `moon fmt --check`; `moon info`; native server build; both embedded demos; `git diff --check`.
+- Revalidated locally on 2026-09-27 with the same toolchain: interface generation, formatting, strict all-target check and tests (86/86 wasm, wasm-gc, js; 89/89 native), native server build, both embedded demos, package listing, and `git diff --check` all passed.
+- Added to the existing Core Profile expansion PR to keep the acceptance work reviewable in one focused change.

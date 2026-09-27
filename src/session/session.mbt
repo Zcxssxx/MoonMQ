@@ -859,6 +859,18 @@ fn Session::dispatch_open(
       }
       Ok(output)
     }
+    @protocol.Method::ExchangeDelete(exchange~, if_unused~, nowait~, ..) =>
+      self.handle_exchange_delete(channel, exchange, if_unused, nowait)
+    @protocol.Method::QueueUnbind(
+      queue~,
+      exchange~,
+      routing_key~,
+      arguments~,
+      ..
+    ) =>
+      self.handle_queue_unbind(channel, queue, exchange, routing_key, arguments)
+    @protocol.Method::QueueDelete(queue~, if_unused~, if_empty~, nowait~, ..) =>
+      self.handle_queue_delete(channel, queue, if_unused, if_empty, nowait)
     @protocol.Method::BasicQos(prefetch_size~, prefetch_count~, global~) => {
       if prefetch_size != UInt(0) || global {
         return Err(SessionError::UnsupportedOperation)
@@ -1014,30 +1026,8 @@ fn Session::dispatch_open(
       }
       Ok(output)
     }
-    @protocol.Method::BasicAck(delivery_tag~, multiple~) => {
-      match self.check_channel(channel) {
-        Ok(_) => ()
-        Err(error) => return Err(error)
-      }
-      if multiple {
-        return Err(SessionError::UnsupportedOperation)
-      }
-      let delivery_index = match self.check_delivery(channel, delivery_tag) {
-        Ok(value) => value
-        Err(error) => return Err(error)
-      }
-      match self.broker.ack_with_owner(self.consumer_owner, delivery_tag) {
-        Ok(_) => {
-          ignore(self.deliveries.remove(delivery_index))
-          let output : Array[@protocol.Frame] = []
-          match self.drain_consumers(output) {
-            Ok(_) => Ok(output)
-            Err(error) => Err(error)
-          }
-        }
-        Err(error) => Err(broker_error(error))
-      }
-    }
+    @protocol.Method::BasicAck(delivery_tag~, multiple~) =>
+      self.handle_basic_ack(channel, delivery_tag, multiple)
     @protocol.Method::BasicReject(delivery_tag~, requeue~) => {
       match self.check_channel(channel) {
         Ok(_) => ()
@@ -1064,10 +1054,7 @@ fn Session::dispatch_open(
         Err(error) => Err(broker_error(error))
       }
     }
-    @protocol.Method::ExchangeDelete(..)
-    | @protocol.Method::QueueDelete(..)
-    | @protocol.Method::QueueUnbind(..)
-    | @protocol.Method::BasicGetEmpty(..)
+    @protocol.Method::BasicGetEmpty(..)
     | @protocol.Method::BasicDeliver(..)
     | @protocol.Method::BasicConsumeOk(..)
     | @protocol.Method::BasicCancelOk(..)

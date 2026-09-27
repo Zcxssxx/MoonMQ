@@ -133,7 +133,14 @@ pub enum BrokerError {
   UnknownExchange
   UnknownQueue
   ExchangeKindMismatch
+  CannotDeleteDefaultExchange
+  ExchangeInUse
   DuplicateBinding
+  UnknownBinding
+  QueueInUse
+  QueueNotEmpty
+  QueueDeleteWithConsumersUnsupported
+  QueueDeleteWithUnackedDeliveriesUnsupported
   DuplicateConsumer
   UnknownConsumer
   UnknownDelivery
