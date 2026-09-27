@@ -107,4 +107,5 @@ Each milestone entry will include its date, Issue/PR links, user-visible behavio
 - Toolchain: `moon 0.1.20260915`, `moonc v0.10.13+cbb11c36f`, `moonrun 0.1.20260915`.
 - Verification: `moon check --deny-warn --target all`; `moon test --deny-warn --target all` — 86 tests passed on wasm, wasm-gc, and js, 89 passed on native; `moon fmt --check`; `moon info`; native server build; both embedded demos; `git diff --check`.
 - Revalidated locally on 2026-09-27 with the same toolchain: interface generation, formatting, strict all-target check and tests (86/86 wasm, wasm-gc, js; 89/89 native), native server build, both embedded demos, package listing, and `git diff --check` all passed.
+- Hosted CI passed on 2026-09-27 with `moon 0.1.20260920` / `moonc v0.10.14+7d59c7ec9`: strict all-target check and tests (86/86 wasm, wasm-gc, js; 89/89 native), format check, and native server build. CI suppresses only warning 25 (`test_unqualified_package`) while existing test modules are migrated to explicit package qualification; every other warning remains an error.
 - Added to the existing Core Profile expansion PR to keep the acceptance work reviewable in one focused change.

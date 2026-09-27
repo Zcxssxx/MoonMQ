@@ -42,6 +42,8 @@ git diff --check
 
 在 `docs/updates.md` 中只记录本次实际执行且退出码为 0 的命令结果。不同 MoonBit toolchain 版本可能改变后端测试数量；应记录版本和当前实测数字，不沿用旧记录。
 
+托管 CI 最近一次（2026-09-27）使用 `moon 0.1.20260920` / `moonc v0.10.14+7d59c7ec9` 通过了严格全目标检查、四目标 347 项测试、格式检查和 native server 构建。CI 仅用 `--warn-list=-25` 豁免既有测试模块的隐式包导入告警；其他编译告警仍会使任务失败。
+
 ## 需要在赛事/公开仓库页面完成的检查
 
 本地文件无法证明线上提交表单是否完整，或参赛群/领奖流程是否完成。代码验收以[公开仓库](https://github.com/Zcxssxx/MoonMQ)和[现有 PR #13](https://github.com/Zcxssxx/MoonMQ/pull/13)页面为准；PR 合并前，验收扩展尚未进入默认分支。
