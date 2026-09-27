@@ -15,16 +15,18 @@ jobs:
       - name: Install MoonBit
         shell: bash
         run: |
-          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s 0.1.20260915+2e1a46d
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Report toolchain
         run: moon version --all
       - name: Update dependencies
         run: moon update
+      # Warning 25 is legacy implicit package lookup in existing test modules.
+      # Keep all other compiler warnings fatal while that test-only migration is pending.
       - name: Cross-target strict check
-        run: moon check --deny-warn --target all
+        run: moon check --deny-warn --warn-list=-25 --target all
       - name: Cross-target strict test
-        run: moon test --deny-warn --target all
+        run: moon test --deny-warn --warn-list=-25 --target all
       - name: Format check
         run: moon fmt --check
       - name: Native server build
