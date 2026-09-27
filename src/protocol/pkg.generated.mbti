@@ -78,6 +78,9 @@ pub enum AmqpError {
   ContentBodyTooLarge
   ContentSizeMismatch
 } derive(Eq, @debug.Debug)
+pub fn AmqpError::equal(Self, Self) -> Bool
+pub fn AmqpError::not_equal(Self, Self) -> Bool
+pub fn AmqpError::to_repr(Self) -> @debug.Repr
 
 pub struct BasicProperties {
   content_type : String?
@@ -101,14 +104,17 @@ pub fn BasicProperties::content_encoding(Self) -> String?
 pub fn BasicProperties::content_type(Self) -> String?
 pub fn BasicProperties::correlation_id(Self) -> String?
 pub fn BasicProperties::delivery_mode(Self) -> Byte?
+pub fn BasicProperties::equal(Self, Self) -> Bool
 pub fn BasicProperties::expiration(Self) -> String?
 pub fn BasicProperties::headers(Self) -> FieldTable?
 pub fn BasicProperties::message_id(Self) -> String?
 pub fn BasicProperties::message_type(Self) -> String?
 pub fn BasicProperties::new() -> Self
+pub fn BasicProperties::not_equal(Self, Self) -> Bool
 pub fn BasicProperties::priority(Self) -> Byte?
 pub fn BasicProperties::reply_to(Self) -> String?
 pub fn BasicProperties::timestamp(Self) -> UInt64?
+pub fn BasicProperties::to_repr(Self) -> @debug.Repr
 pub fn BasicProperties::user_id(Self) -> String?
 pub fn BasicProperties::with_app_id(Self, String) -> Self
 pub fn BasicProperties::with_cluster_id(Self, String) -> Self
@@ -142,8 +148,11 @@ pub struct ContentHeader {
 } derive(Eq, @debug.Debug)
 pub fn ContentHeader::body_size(Self) -> UInt64
 pub fn ContentHeader::class_id(Self) -> UInt16
+pub fn ContentHeader::equal(Self, Self) -> Bool
 pub fn ContentHeader::new(class_id~ : UInt16, weight~ : UInt16, body_size~ : UInt64, properties~ : BasicProperties) -> Self
+pub fn ContentHeader::not_equal(Self, Self) -> Bool
 pub fn ContentHeader::properties(Self) -> BasicProperties
+pub fn ContentHeader::to_repr(Self) -> @debug.Repr
 pub fn ContentHeader::weight(Self) -> UInt16
 
 pub struct ContentMessage {
@@ -151,13 +160,19 @@ pub struct ContentMessage {
   body : Bytes
 } derive(Eq, @debug.Debug)
 pub fn ContentMessage::body(Self) -> Bytes
+pub fn ContentMessage::equal(Self, Self) -> Bool
 pub fn ContentMessage::header(Self) -> ContentHeader
+pub fn ContentMessage::not_equal(Self, Self) -> Bool
+pub fn ContentMessage::to_repr(Self) -> @debug.Repr
 
 pub struct FieldTable {
   entries : Array[(String, FieldValue)]
 } derive(Eq, @debug.Debug)
 pub fn FieldTable::entries(Self) -> Array[(String, FieldValue)]
+pub fn FieldTable::equal(Self, Self) -> Bool
 pub fn FieldTable::new(Array[(String, FieldValue)]) -> Self
+pub fn FieldTable::not_equal(Self, Self) -> Bool
+pub fn FieldTable::to_repr(Self) -> @debug.Repr
 
 pub(all) enum FieldValue {
   FieldBoolean(Bool)
@@ -168,6 +183,9 @@ pub(all) enum FieldValue {
   FieldTimestamp(UInt64)
   FieldVoid
 } derive(Eq, @debug.Debug)
+pub fn FieldValue::equal(Self, Self) -> Bool
+pub fn FieldValue::not_equal(Self, Self) -> Bool
+pub fn FieldValue::to_repr(Self) -> @debug.Repr
 
 pub struct Frame {
   kind : FrameKind
@@ -185,6 +203,9 @@ pub(all) enum FrameKind {
   FrameBody
   FrameHeartbeat
 } derive(Eq, @debug.Debug)
+pub fn FrameKind::equal(Self, Self) -> Bool
+pub fn FrameKind::not_equal(Self, Self) -> Bool
+pub fn FrameKind::to_repr(Self) -> @debug.Repr
 
 pub(all) enum Method {
   ConnectionStart(version_major~ : Byte, version_minor~ : Byte, server_properties~ : FieldTable, mechanisms~ : Bytes, locales~ : Bytes)
@@ -226,6 +247,9 @@ pub(all) enum Method {
   BasicReject(delivery_tag~ : UInt64, requeue~ : Bool)
   BasicReturn(reply_code~ : UInt16, reply_text~ : String, exchange~ : String, routing_key~ : String)
 } derive(Eq, @debug.Debug)
+pub fn Method::equal(Self, Self) -> Bool
+pub fn Method::not_equal(Self, Self) -> Bool
+pub fn Method::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
