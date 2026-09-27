@@ -19,9 +19,15 @@ jobs:
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Report toolchain
         run: moon version --all
-      - name: Check
-        run: moon check
-      - name: Test
-        run: moon test
+      - name: Update dependencies
+        run: moon update
+      # Warning 25 is legacy implicit package lookup in existing test modules.
+      # Keep all other compiler warnings fatal while that test-only migration is pending.
+      - name: Cross-target strict check
+        run: moon check --deny-warn --warn-list=-25 --target all
+      - name: Cross-target strict test
+        run: moon test --deny-warn --warn-list=-25 --target all
       - name: Format check
         run: moon fmt --check
+      - name: Native server build
+        run: moon build --target native cmd/moonmq-server

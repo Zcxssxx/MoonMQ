@@ -15,7 +15,7 @@ version = "0.1.0"
 
 readme = "README.md"
 
-repository = ""
+repository = "https://github.com/Zcxssxx/MoonMQ"
 
 license = "Apache-2.0"
 
@@ -24,3 +24,7 @@ keywords = [ ]
 preferred_target = "wasm"
 
 description = "AMQP 0-9-1 protocol core and embedded in-memory broker for MoonBit"
+
+import {
+  "moonbitlang/async@0.20.2",
+}

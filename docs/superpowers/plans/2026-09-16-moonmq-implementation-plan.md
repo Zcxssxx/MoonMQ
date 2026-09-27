@@ -2,7 +2,7 @@
 
 ## Goal
 
-Deliver a public, reproducible MoonBit project that demonstrates a useful AMQP 0-9-1 Core Profile implementation and a pure in-memory embedded Broker. The project must be understandable from its README, runnable locally without external services, tested by `moon test`, and developed through traceable Issues, pull requests, meaningful commits, and an update log.
+Deliver a public, reproducible MoonBit project that implements a documented AMQP 0-9-1 Core Profile, a pure in-memory embedded Broker, and a testable session/transport boundary. The project must be understandable from its README, runnable locally without external services, tested by `moon test`, and developed through traceable Issues, pull requests, meaningful commits, and an update log.
 
 ## Architecture and technology
 

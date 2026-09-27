@@ -7,18 +7,29 @@ This document is the compatibility contract for the first release. It is narrowe
 | Area | Methods / behavior |
 | --- | --- |
 | Framing | protocol header, method/header/body/heartbeat envelopes, `0xCE` terminator, exact-size and bounded frame validation |
-| Primitives | network-byte-order `u16`/`u32`/`u64`, UTF-8 short strings, exact-width and malformed-input checks |
-| Methods | typed `basic.publish`, `basic.ack`, and `basic.reject` payloads with field validation |
-| Broker | in-memory default/direct/fanout/topic routing, named/generated queues, push/pull delivery, prefetch, ack/reject/requeue, cancellation cleanup |
-| Transport | no socket dependency in the current release; embedded use is the supported execution path |
+| Primitives | network-byte-order `u16`/`u32`/`u64`, UTF-8 short strings, bounded arbitrary-byte long strings, exact-width and malformed-input checks |
+| Methods | typed connection/channel handshake, exchange/queue topology, Basic QoS/consume/get/deliver/publish/return/ack/reject/cancel methods with field validation |
+| Content | Basic class content properties, header property flags, and bounded multi-frame body assembly with exact declared-size checks |
+| Broker | in-memory default/direct/fanout/topic routing, named/generated queues, push/pull delivery, prefetch, ack/reject/requeue, cancellation cleanup, exchange delete, queue unbind, idle queue delete, and owner-scoped batch acknowledgement |
+| Session | portable handshake, channel lifecycle, exchange/queue declare/delete/bind/unbind, publish/content assembly, get, consume/deliver, cancel, single/multiple ack, reject, and heartbeat translation to the embedded Broker |
+| Transport | native-only bounded TCP adapter on `moonbitlang/async/socket`; portable embedded/session use remains available on all targets |
 
 ## Deferred profile expansion
 
-Connection/channel handshake, exchange/queue method frames, content-header properties, multi-frame content assembly, and the native TCP/session adapter are planned follow-up slices. They are intentionally not claimed as implemented interoperability in this release.
+External-client interoperability remains a planned follow-up slice. The native adapter is covered by fragmented-stream and real local TCP handshake tests; this is not yet a claim of complete RabbitMQ client compatibility.
 
 ## Explicit non-goals
 
 AMQP 1.0 and 0-10, persistence/recovery, replication, clustering, transactions, publisher confirms, alternate exchanges, dead-lettering, priorities, plugins, TLS, authentication/ACL, and full RabbitMQ extension compatibility are not first-release promises.
+
+## Session limitations
+
+- `exchange.delete` removes a named exchange and its bindings. `if-unused` rejects exchanges that still have bindings. The built-in default exchange cannot be deleted.
+- `queue.unbind` removes an exact queue/exchange/routing-key binding. Its arguments table must be empty.
+- `queue.delete` honors `if-unused` and `if-empty`, returns the ready-message count, and removes bindings. It is supported only when the queue has no active consumers and no unsettled deliveries. Deleting an active queue is explicitly unsupported, even when `if-unused` is false, because the portable session/native transport boundary has no cross-session consumer-cancel or delivery-invalidation notification mechanism.
+- `basic.ack(multiple=true)` acknowledges only outstanding deliveries on the current channel; tag zero acknowledges all outstanding deliveries on that channel. The Broker validates the owner-scoped tag set before changing state and resumes prefetch-limited dispatch afterward.
+
+The native profile currently accepts only `PLAIN`/`guest`/`guest` on virtual host `/`; it is a local demonstration policy, not a general authentication system. Negotiated channel and frame limits are bounded and applied to session validation and response body fragmentation. Basic content properties and the source exchange are preserved through Broker delivery and returned content frames.
 
 ## Interoperability position
 

@@ -1,0 +1,13 @@
+# Local agent instructions and planning notes are not part of the published module.
+/AGENTS.md
+/task_plan.md
+/findings.md
+/progress.md
+/.planning/
+
+# Keep the registry package focused on the library and its user documentation.
+/docs/acceptance-self-check.md
+/docs/project-proposal.md
+/docs/superpowers/
+
+!/.moonignore

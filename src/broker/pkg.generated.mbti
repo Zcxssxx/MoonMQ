@@ -2,6 +2,7 @@
 package "Zcxssxx/moonmq/src/broker"
 
 import {
+  "Zcxssxx/moonmq/src/protocol",
   "moonbitlang/core/debug",
 }
 
@@ -21,32 +22,55 @@ pub struct Broker {
   mut next_queue_id : Int
 }
 pub fn Broker::ack(Self, UInt64) -> Result[Unit, BrokerError]
+pub fn Broker::ack_many_with_owner(Self, String, Array[UInt64]) -> Result[Unit, BrokerError]
+pub fn Broker::ack_with_owner(Self, String, UInt64) -> Result[Unit, BrokerError]
 pub fn Broker::bind_queue(Self, String, String, String) -> Result[Unit, BrokerError]
 pub fn Broker::cancel_consumer(Self, ConsumerHandle) -> Result[Unit, BrokerError]
 pub fn Broker::consume(Self, String, String, Int) -> Result[ConsumerHandle, BrokerError]
+pub fn Broker::consume_with_owner(Self, String, String, String, Int) -> Result[ConsumerHandle, BrokerError]
 pub fn Broker::declare_exchange(Self, String, ExchangeKind) -> Result[Unit, BrokerError]
 pub fn Broker::declare_queue(Self, String) -> Result[String, BrokerError]
+pub fn Broker::delete_exchange(Self, String, Bool) -> Result[Unit, BrokerError]
+pub fn Broker::delete_queue(Self, String, Bool, Bool) -> Result[Int, BrokerError]
 pub fn Broker::get(Self, String) -> Result[Delivery?, BrokerError]
+pub fn Broker::get_with_owner(Self, String, String) -> Result[Delivery?, BrokerError]
 pub fn Broker::new() -> Self
 pub fn Broker::poll(Self, ConsumerHandle) -> Result[Delivery?, BrokerError]
 pub fn Broker::publish(Self, String, String, Bytes) -> Result[Int, BrokerError]
+pub fn Broker::publish_with_properties(Self, String, String, Bytes, @protocol.BasicProperties) -> Result[Int, BrokerError]
+pub fn Broker::queue_stats(Self, String) -> Result[QueueStats, BrokerError]
 pub fn Broker::reject(Self, UInt64, Bool) -> Result[Unit, BrokerError]
+pub fn Broker::reject_with_owner(Self, String, UInt64, Bool) -> Result[Unit, BrokerError]
+pub fn Broker::unbind_queue(Self, String, String, String) -> Result[Unit, BrokerError]
 
 pub enum BrokerError {
   UnknownExchange
   UnknownQueue
   ExchangeKindMismatch
+  CannotDeleteDefaultExchange
+  ExchangeInUse
   DuplicateBinding
+  UnknownBinding
+  QueueInUse
+  QueueNotEmpty
+  QueueDeleteWithConsumersUnsupported
+  QueueDeleteWithUnackedDeliveriesUnsupported
   DuplicateConsumer
   UnknownConsumer
   UnknownDelivery
   InvalidPrefetch
 } derive(Eq, @debug.Debug)
+pub fn BrokerError::equal(Self, Self) -> Bool
+pub fn BrokerError::not_equal(Self, Self) -> Bool
+pub fn BrokerError::to_repr(Self) -> @debug.Repr
 
 pub struct ConsumerHandle {
   queue : String
   tag : String
 } derive(Eq, @debug.Debug)
+pub fn ConsumerHandle::equal(Self, Self) -> Bool
+pub fn ConsumerHandle::not_equal(Self, Self) -> Bool
+pub fn ConsumerHandle::to_repr(Self) -> @debug.Repr
 
 pub struct Delivery {
   tag : UInt64
@@ -56,16 +80,24 @@ pub struct Delivery {
 } derive(Eq, @debug.Debug)
 pub fn Delivery::body(Self) -> Bytes
 pub fn Delivery::consumer_tag(Self) -> String
+pub fn Delivery::equal(Self, Self) -> Bool
+pub fn Delivery::exchange(Self) -> String
+pub fn Delivery::not_equal(Self, Self) -> Bool
+pub fn Delivery::properties(Self) -> @protocol.BasicProperties
 pub fn Delivery::queue(Self) -> String
 pub fn Delivery::redelivered(Self) -> Bool
 pub fn Delivery::routing_key(Self) -> String
 pub fn Delivery::tag(Self) -> UInt64
+pub fn Delivery::to_repr(Self) -> @debug.Repr
 
 pub(all) enum ExchangeKind {
   ExchangeDirect
   ExchangeFanout
   ExchangeTopic
 } derive(Eq, @debug.Debug)
+pub fn ExchangeKind::equal(Self, Self) -> Bool
+pub fn ExchangeKind::not_equal(Self, Self) -> Bool
+pub fn ExchangeKind::to_repr(Self) -> @debug.Repr
 
 type ExchangeState
 
@@ -73,15 +105,34 @@ type InFlight
 
 pub struct Message {
   body : Bytes
+  exchange : String
   routing_key : String
   redelivered : Bool
+  properties : @protocol.BasicProperties
 } derive(Eq, @debug.Debug)
 pub fn Message::body(Self) -> Bytes
+pub fn Message::equal(Self, Self) -> Bool
+pub fn Message::exchange(Self) -> String
 pub fn Message::new(Bytes, String) -> Self
+pub fn Message::new_with_exchange(String, Bytes, String) -> Self
+pub fn Message::new_with_properties(String, Bytes, String, @protocol.BasicProperties) -> Self
+pub fn Message::not_equal(Self, Self) -> Bool
+pub fn Message::properties(Self) -> @protocol.BasicProperties
 pub fn Message::redelivered(Self) -> Bool
 pub fn Message::routing_key(Self) -> String
+pub fn Message::to_repr(Self) -> @debug.Repr
 
 type QueueState
+
+pub struct QueueStats {
+  message_count : Int
+  consumer_count : Int
+} derive(Eq, @debug.Debug)
+pub fn QueueStats::consumer_count(Self) -> Int
+pub fn QueueStats::equal(Self, Self) -> Bool
+pub fn QueueStats::message_count(Self) -> Int
+pub fn QueueStats::not_equal(Self, Self) -> Bool
+pub fn QueueStats::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 

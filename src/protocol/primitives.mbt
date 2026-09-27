@@ -126,3 +126,35 @@ pub fn decode_short_string(input : Bytes) -> Result[String, AmqpError] {
     value => Ok(value)
   }
 }
+
+///|
+const MAX_LONG_STRING_SIZE : Int = 1048576
+
+///|
+/// Encode an AMQP long string with a four-byte byte-length prefix.
+pub fn encode_long_string(value : Bytes) -> Result[Bytes, AmqpError] {
+  if value.length() > MAX_LONG_STRING_SIZE {
+    Err(ValueTooLong)
+  } else {
+    Ok(concat_bytes(encode_u32(value.length().reinterpret_as_uint()), value))
+  }
+}
+
+///|
+/// Decode one exact AMQP long string and preserve its bytes unchanged.
+pub fn decode_long_string(input : Bytes) -> Result[Bytes, AmqpError] {
+  if input.length() < 4 {
+    return Err(TruncatedInput)
+  }
+  let size = match decode_u32(input[0:4].to_owned()) {
+    Ok(value) => value.reinterpret_as_int()
+    Err(error) => return Err(error)
+  }
+  if size < 0 || size > MAX_LONG_STRING_SIZE {
+    return Err(ValueTooLong)
+  }
+  if input.length() != 4 + size {
+    return Err(TruncatedInput)
+  }
+  Ok(input[4:4 + size].to_owned())
+}

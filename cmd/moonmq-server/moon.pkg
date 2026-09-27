@@ -1,0 +1,11 @@
+///|
+/// Native AMQP TCP server executable.
+supported_targets = "native"
+
+pkgtype(kind: "executable")
+
+import {
+  "Zcxssxx/moonmq/src/broker",
+  "Zcxssxx/moonmq/src/transport/native",
+  "moonbitlang/async",
+}

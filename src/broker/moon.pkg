@@ -1,5 +1,6 @@
 ///|
 /// Deterministic, backend-independent in-memory broker.
 import {
+  "Zcxssxx/moonmq/src/protocol",
   "moonbitlang/core/debug",
 }

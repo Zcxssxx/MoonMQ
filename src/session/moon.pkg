@@ -1,0 +1,7 @@
+///|
+/// Portable AMQP session state machine over the MoonMQ protocol and broker cores.
+import {
+  "Zcxssxx/moonmq/src/broker",
+  "Zcxssxx/moonmq/src/protocol",
+  "moonbitlang/core/debug",
+}
