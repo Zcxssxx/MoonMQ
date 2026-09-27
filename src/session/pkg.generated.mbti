@@ -54,6 +54,9 @@ pub enum SessionError {
   ProtocolError(@protocol.AmqpError)
   BrokerError(@broker.BrokerError)
 } derive(Eq, @debug.Debug)
+pub fn SessionError::equal(Self, Self) -> Bool
+pub fn SessionError::not_equal(Self, Self) -> Bool
+pub fn SessionError::to_repr(Self) -> @debug.Repr
 
 pub(all) enum SessionState {
   AwaitProtocolHeader
@@ -63,6 +66,9 @@ pub(all) enum SessionState {
   Open
   Closed
 } derive(Eq, @debug.Debug)
+pub fn SessionState::equal(Self, Self) -> Bool
+pub fn SessionState::not_equal(Self, Self) -> Bool
+pub fn SessionState::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
